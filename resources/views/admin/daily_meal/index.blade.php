@@ -21,7 +21,7 @@
       <div class="card-header">
         <h4>Tags table</h4>
         <div class="card-header-form">
-            @if(count($dailyMeals) <= 4)
+            @if($dailyMeals->count() < 4)
                 <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Create</a>
             @endif
         </div>

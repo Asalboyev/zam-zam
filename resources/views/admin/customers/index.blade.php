@@ -128,7 +128,8 @@
                                 <td> {{$iteam->phone}}</td>
                                 <td> {{$iteam->type}}   </td>
                                 <td> {{$iteam->status}}   </td>
-                                <td>{{ number_format($iteam->balance, 2, '.', ' ') }}  so'm</td>
+                                <td class="{{ $iteam->balance < 0 ? 'text-danger' : '' }}">{{ number_format($iteam->balance, 2, '.', ' ') }}  so'm</td>
+
                                 <td>{{$iteam->telegram}}</td>
                                 <td>{{$iteam->address}}</td>
                                 <td>{{$iteam->district}}</td>

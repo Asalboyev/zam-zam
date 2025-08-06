@@ -86,7 +86,9 @@
                                 <td onclick="copyToClipboard(this)">
                                     {{ $order->customer->phone ?? '-' }}
                                 </td>
-                                <td>{{ $order->customer->balance }}</td>
+                                <td class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
+                                    {{ $order->customer->balance }}
+                                </td>
                                 @php $totalMeals = 0; @endphp
                                 @foreach($meals as $meal)
                                     @php

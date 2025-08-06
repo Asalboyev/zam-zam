@@ -65,13 +65,12 @@
                         @endforeach
                     </div>
 
+
                     <div>
-{{--                        <div><strong>Plan:</strong>--}}
-
-{{--                        </div>--}}
-{{--                        <div><strong>Fakt:</strong>--}}
-
-{{--                        </div>--}}
+                        <h6 class="fw-bold">Mijozlar:</h6>
+                        @foreach($latestOrders as $customer)
+                            <div>{{ $customer->customer->name }}: {{ number_format($customer['total_amount'], 0, '.', ' ') }} so'm</div>
+                        @endforeach
                     </div>
 
 
@@ -230,7 +229,8 @@
                         @foreach($latestOrders as $order)
                             <tr>
                                 <td>{{ $order->id }}</td>
-                                <td>{{ $order->daily_order_number }}</td>                                <td>{{ $order->customer->name ?? '-' }}</td>
+                                <td>{{ $order->daily_order_number }}</td>
+                                <td>{{ $order->customer->name ?? '-' }}</td>
                                 <td onclick="copyToClipboard('{{ $order->customer->phone }}')">
                                     @if ($order->customer && $order->customer->phone)
                                         <a href="tel:{{ $order->customer->phone }}" style="text-decoration: none; color: inherit;">
@@ -241,7 +241,9 @@
                                     @endif
                                 </td>
 
-                                <td>{{ $order->customer->balance }}</td>
+                                <td class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
+                                    {{ $order->customer->balance }}
+                                </td>
                                 @php $totalMeals = 0; @endphp
                                 @foreach($meals as $meal)
                                     @php
