@@ -148,8 +148,8 @@
                     Naqt: {{ number_format($factByMethod['naqt'], 0, '.', ' ') }}
                 </div>
                 <div class="mt-3"><strong>Oylik mijozlar umumiy:</strong></div>
-                <div><strong>Plan:</strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
-                <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>
+                <div><strong></strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
+{{--                <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
 
             </div>
 

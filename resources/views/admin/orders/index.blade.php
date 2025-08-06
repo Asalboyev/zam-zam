@@ -154,12 +154,15 @@
                             Naqt: {{ number_format($factByMethod['naqt'], 0, '.', ' ') }}
                         </div>
                         <div class="mt-3"><strong>Oylik mijozlar umumiy:</strong></div>
-                        <div><strong>Plan:</strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
-                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>
+                        <div><strong></strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
+{{--                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
 
                     </div>
 
                 </div>
+
+                @if(!empty($DailyMeal))
+
                 <div class="card-header">
                 <form method="POST" action="{{ route('admin.orders.store') }}">
                     @csrf
@@ -254,6 +257,13 @@
                     <button type="submit" class="btn btn-success mt-3">Buyurtmalarni Saqlash</button>
                 </form>
             </div>
+                @else
+                    <div class="alert alert-warning">
+                        Ovqat mavjud emas
+                    </div>
+
+                @endif
+
         </div>
     </div>
     <div class="col-19 col-md-19 col-lg-19">
