@@ -145,7 +145,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     </a>
-                                    <a href="{{ route('admin.customers.show', $iteam->id) }}" class="icon-btn">
+                                    <a href="{{ route('admin.customers.edit', $iteam->id) }}" class="icon-btn">
                                         <i class="fas fa-eye"></i>
                                     </a>
                             </tr>

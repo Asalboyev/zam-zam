@@ -11,96 +11,28 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\BalanceHistory;
 use Illuminate\Support\Facades\DB;
+
 class OrdersController extends Controller
 {
 
-//    public function index(Request $request)
-//    {
-//        $date = $request->input('order_date', now()->format('Y-m-d'));
-//
-//        $customers = Customer::all();
-//        $drivers = Driver::where('is_active', true)->get();
-//
-//        // Bugungi orderlar
-//        $latestOrders = Order::with(['customer', 'meal1', 'meal2', 'meal3', 'meal4', 'driver'])
-//            ->where('order_date', $date)
-//            ->orderBy('created_at', 'desc')
-//            ->take(50)
-//            ->get();
-//
-//        // Umumiy mijoz va haydovchi summalari
-//        $customerTotal = $latestOrders->sum('customer_price');
-//        $driverTotal = $latestOrders->sum('driver_price');
-//
-//        // Plan - to'lov turiga qarab grouping (total_amount)
-//        $planByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
-//            return $group->sum('total_amount');
-//        });
-//
-//        // Fakt - to'lov turiga qarab grouping (received_amount)
-//        $factByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
-//            return $group->sum('received_amount');
-//        });
-//
-//        // Bugungi DailyMeal'lar (itemlar bilan birga)
-//        $dailyMeals = DailyMeal::with('items')->where('date', $date)->get();
-//
-//        // Barcha itemlar kolleksiyasi
-//        $meals = $dailyMeals->flatMap(function ($dailyMeal) {
-//            return $dailyMeal->items;
-//        })->groupBy('id')->map(function ($groupedItems) {
-//            $meal = $groupedItems->first(); // asosiy ovqat
-//            $totalCount = $groupedItems->sum(function ($item) {
-//                return $item->pivot->count ?? 0;
-//            });
-//
-//            $meal->total_count = $totalCount;
-//            return $meal;
-//        })->values();
-//
-//        // Har bir ovqat bo‘yicha statistikani tayyorlash
-//        $mealStats = [];
-//
-//        foreach ($dailyMeals as $dailyMeal) {
-//            foreach ($dailyMeal->items as $item) {
-//                $orderedCount = $latestOrders->filter(function ($order) use ($item) {
-//                    return in_array($item->id, [
-//                        $order->meal_1_id,
-//                        $order->meal_2_id,
-//                        $order->meal_3_id,
-//                        $order->meal_4_id
-//                    ]);
-//                })->count();
-//
-//                if (!isset($mealStats[$item->id])) {
-//                    $mealStats[$item->id] = [
-//                        'meal_name' => $item->name,
-//                        'initial_count' => $item->pivot->count,
-//                        'ordered_count' => $orderedCount,
-//                        'remaining' => $item->pivot->count - $orderedCount,
-//                    ];
-//                } else {
-//                    $mealStats[$item->id]['initial_count'] += $item->pivot->count;
-//                    $mealStats[$item->id]['ordered_count'] += $orderedCount;
-//                    $mealStats[$item->id]['remaining'] = $mealStats[$item->id]['initial_count'] - $mealStats[$item->id]['ordered_count'];
-//                }
-//            }
-//        }
-//
-//        return view('admin.orders.index', compact(
-//            'date',
-//            'customers',
-//            'drivers',
-//            'dailyMeals',
-//            'meals',
-//            'mealStats',
-//            'latestOrders',
-//            'customerTotal',
-//            'driverTotal',
-//            'planByPaymentType',
-//            'factByPaymentType'
-//        ));
-//    }
+
+// OrderController.php
+
+
+    public function updateReceivedAmount(Request $request, Order $order)
+    {
+        $request->validate([
+            'received_amount' => 'required|integer|min:0',
+        ]);
+
+        $order->received_amount = $request->received_amount;
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'total_amount' => $order->total_amount,
+        ]);
+    }
 
     public function index(Request $request)
     {
@@ -452,15 +384,13 @@ class OrdersController extends Controller
                         'type' => 'order',
                         'description' => "Buyurtma #{$order->id} uchun balansdan yechildi.",
                     ]);
-
                     // ⬇️⬇️⬇️  SHU YERDA `daily_meal_items` dan count kamaytiramiz
+                    $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
 
-                    $dailyMeal = \App\Models\DailyMeal::where('date', $orderDate)->first();
-
-                    if ($dailyMeal) {
+                    foreach ($dailyMeals as $dailyMeal) {
                         foreach ($meals as $mealId => $qty) {
+                            // Bu yerda $dailyMeal modelning obyekti, shuning uchun items() ishlaydi
                             $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
-
                             if ($item && $item->pivot) {
                                 $currentCount = $item->pivot->count;
                                 $newCount = max(0, $currentCount - intval($qty));
@@ -471,7 +401,6 @@ class OrdersController extends Controller
                         }
                     }
 
-                    // ⬆️⬆️⬆️ COUNT kamaytirish tugadi
                 } else {
                     continue;
                 }

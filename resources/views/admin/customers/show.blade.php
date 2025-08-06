@@ -16,13 +16,30 @@
 @section('content')
 
     <div class="col-12 col-md-12 col-lg-12">
+        <div class="row">
+            <div class="col-4">
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item">
+                                <a class="nav-link " href="{{ route('admin.customers.edit',$customer->id) }}">Anketa <span class="badge badge-white"></span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#">Buyurtmalar <span class="badge badge-primary"></span></a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
         @if(isset($latestOrders) && count($latestOrders) > 0)
-            <div class="card mt-2">
+            <div class="card mt-">
                 <div class="card-header" style="display: flex; align-items: center; justify-content: space-between">
                     <h5>Buyurtmalar tarixi </h5>
-                    <div class="card-header-form" style="text-align: right">
-                        <a  href="{{ route('admin.customers.edit',$customer->id) }}" class="btn btn-primary">Anketa</a>
-                    </div>
+{{--                    <div class="card-header-form" style="text-align: right">--}}
+{{--                        <a  href="{{ route('admin.customers.edit',$customer->id) }}" class="btn btn-primary">Anketa</a>--}}
+{{--                    </div>--}}
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0">
@@ -32,16 +49,17 @@
                             <th>Mijoz</th>
                             <th>Telefon</th>
                             <th>Sana</th>
-                            <th>Ovaqt1</th>
-                            <th>Ovaqt2</th>
-                            <th>Ovaqt3</th>
-                            <th>Ovaqt4</th>
+                            <th style="color: #4B4DFF">Ovaqt1</th>
+                            <th style="color: #00A452;">Ovaqt2</th>
+                            <th style="color: #E40089;">Ovaqt3</th>
+                            <th style="color: #ED0000;">Ovaqt4</th>
                             <th>T</th>
                             <th>Cola</th>
                             <th>Dostavka</th>
                             <th>Kuryer</th>
                             <th>To‘lov</th>
                             <th>Jami</th>
+                            <th>Olindi</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -100,6 +118,11 @@
                                 <td>{{ $order->driver->name ?? '-' }}</td>
                                 <td>{{ ucfirst($order->payment_method) }}</td>
                                 <td><strong>{{ number_format($order->total_amount, 0, ',', ' ') }} so‘m</strong></td>
+                                <td>
+                                    <strong style="color: {{ $order->received_amount < $order->total_amount ? 'red' : 'green' }}">
+                                        {{ number_format($order->received_amount, 0, ',', ' ') }} so‘m
+                                    </strong>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>

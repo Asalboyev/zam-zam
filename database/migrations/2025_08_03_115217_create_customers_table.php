@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('telegram')->nullable();
             $table->enum('status', ['Active', 'Blok'])->default('Active');
-            $table->enum('type', ['oylik', 'odiy'])->default('odiy');
+                $table->enum('type', ['oylik', 'odiy'])->default('odiy');
 
             // Address information
             $table->string('address')->nullable();

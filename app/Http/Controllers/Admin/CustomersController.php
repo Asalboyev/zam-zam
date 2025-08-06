@@ -10,7 +10,8 @@ use App\Models\Order;
 use App\Models\Driver;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
+use App\Models\BalanceHistory;
 class CustomersController extends Controller
 {
     public function index(){
@@ -21,6 +22,15 @@ class CustomersController extends Controller
     public function create(){
         return view('admin.customers.create');
     }
+    // App\Http\Controllers\CustomerController.php
+
+    public function Histories($id)
+    {
+        $customer = Customer::with('balanceHistories')->findOrFail($id);
+
+        return view('admin.customers.histories', compact('customer'));
+    }
+
 
 
     public function dashboard()
@@ -80,30 +90,54 @@ class CustomersController extends Controller
     public function edit(Customer $customer){
         return view('admin.customers.edit',compact('customer'));
     }
+
     public function update(Request $request, Customer $customer)
     {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'telegram' => 'nullable|string|max:50',
+                'status' => 'required|in:Active,Blok',
+                'type' => 'required|in:oylik,odiy',
+                'address' => 'nullable|string|max:255',
+                'district' => 'nullable|string|max:100',
+                'location_coordinates' => 'nullable|string|max:255',
+                'balance' => 'nullable|numeric',
+                'balance_due_date' => 'nullable|date',
+            ]);
 
+            $additionalBalance = $validated['balance'] ?? 0;
+            $oldBalance = $customer->balance;
+            $newBalance = $oldBalance + $additionalBalance;
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'telegram' => 'nullable|string|max:50',
-            'status' => 'required|in:Active,Blok',
-            'type' => 'required|in:Oylik mijoz,Odiy',
+            $updateData = $validated;
+            $updateData['balance'] = $newBalance;
 
-            'address' => 'nullable|string|max:255',
-            'district' => 'nullable|string|max:100',
-            'location_coordinates' => 'nullable|string|max:255',
+            Log::info('Customer update data:', $updateData);
 
-            'balance' => 'nullable|numeric',
-            'balance_due_date' => 'nullable|date',
-        ]);
+            $customer->update($updateData);
 
-        $customer->update($validated);
+            if ($additionalBalance > 0) {
+                BalanceHistory::create([
+                    'customer_id' => $customer->id,
+                    'amount' => $additionalBalance,
+                    'type' => 'payment',
+                    'description' => 'Admin tomonidan balans to‘ldirildi',
+                ]);
+            }
 
-        return redirect()->route('admin.customers.index')
-            ->with('success', 'Mijoz maʼlumotlari yangilandi.');
+            return redirect()->route('admin.customers.index')
+                ->with('success', 'Mijoz maʼlumotlari yangilandi.');
+        } catch (\Throwable $e) {
+            Log::error('Customer update error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+        }
     }
+
     public function show($id)
     {
         $customer = Customer::findOrFail($id);

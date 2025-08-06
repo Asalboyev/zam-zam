@@ -42,6 +42,10 @@ class Customer extends Model
         return number_format($this->balance, 0, ',', ' ');
     }
 
+    public function balanceHistories()
+    {
+        return $this->hasMany(BalanceHistory::class);
+    }
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
@@ -52,8 +56,8 @@ class Customer extends Model
         return $query->where('type', 'monthly');
     }
 
-    public function balanceHistories()
-    {
-        return $this->hasMany(BalanceHistory::class)->latest();
-    }
+//    public function balanceHistories()
+//    {
+//        return $this->hasMany(BalanceHistory::class)->latest();
+//    }
 }

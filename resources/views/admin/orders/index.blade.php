@@ -1,6 +1,28 @@
 @php
     $colors = ['#4B4DFF', '#00A452', '#E40089', '#ED0000'];
+     $planByMethod = ['karta' => 0, 'naqt' => 0];
+    $factByMethod = ['karta' => 0, 'naqt' => 0];
+
+    $oylikPlan = 0;
+    $oylikFact = 0;
+
+    foreach ($latestOrders as $order) {
+        if (isset($order->customer) && $order->customer->type === 'oylik') {
+            $oylikPlan += $order->total_amount;
+            $oylikFact += $order->received_amount;
+        } else {
+            if ($order->payment_method === 'karta') {
+                $planByMethod['karta'] += $order->total_amount;
+                $factByMethod['karta'] += $order->received_amount;
+            } elseif ($order->payment_method === 'naqt') {
+                $planByMethod['naqt'] += $order->total_amount;
+                $factByMethod['naqt'] += $order->received_amount;
+            }
+        }
+    }
 @endphp
+
+
 @extends('layouts.admin')
 @section('title')
     Customers
@@ -23,6 +45,38 @@
             flex: 1 1 300px;
         }
 
+        .card-header{
+            border: 2px solid #DCDCE7 !important;
+            border-bottom: none !important;
+        }
+
+        .customTable thead tr{
+            background-color: #fff !important;
+
+        }
+
+        .customTable thead tr th{
+            border: 2px solid #DCDCE7 !important;
+            background-color: #fff !important;
+
+        }
+
+        .customTable thead tr .sortTable{
+            font-size: 12px;
+            font-weight: 400;
+            color: #1C1C29;
+        }
+
+        .customTable tbody tr td{
+            border: 2px solid #DCDCE7 !important;
+        }
+
+        .customTable tbody tr .sortTable{
+            font-size: 12px;
+            font-weight: 400;
+            color: #1C1C29;
+
+        }
         @media screen and (max-width: 768px) {
             .responsive-row {
                 flex-direction: column;
@@ -64,28 +118,46 @@
                             </div>
                         @endforeach
                     </div>
-
-
                     <div>
-                        <h6 class="fw-bold">Mijozlar:</h6>
-                        @foreach($latestOrders as $customer)
-                            <div>{{ $customer->customer->name }}: {{ number_format($customer['total_amount'], 0, '.', ' ') }} so'm</div>
+                        <h6 class="fw-bold">Driver:</h6>
+                        @php
+                            $driverSums = [];
+                        @endphp
+
+                        @foreach($latestOrders as $order)
+                            @if ($order->customer && $order->customer->type === 'odiy' && $order->payment_method === 'naqt')
+                                @php
+                                    $customerId = $order->driver->id;
+                                    if (!isset($driverSums[$customerId])) {
+                                        $driverSums[$customerId] = [
+                                            'name' => $order->driver->name,
+                                            'received' => 0,
+                                        ];
+                                    }
+                                    $driverSums[$customerId]['received'] += $order->received_amount;
+                                @endphp
+                            @endif
+                        @endforeach
+
+                        @foreach($driverSums as $driver)
+                            <div>{{ $driver['name'] }}: {{ number_format($driver['received'], 0, '.', ' ') }} so‘m</div>
                         @endforeach
                     </div>
 
-
                     <div>
                         <div><strong>Plan:</strong>
-                            Karta: {{ number_format($planByMethod['karta'] ?? 0, 0, '.', ' ') }} |
-                            Naqt: {{ number_format($planByMethod['naqt'] ?? 0, 0, '.', ' ') }}
+                            Karta: {{ number_format($planByMethod['karta'], 0, '.', ' ') }} |
+                            Naqt: {{ number_format($planByMethod['naqt'], 0, '.', ' ') }}
                         </div>
                         <div><strong>Fakt:</strong>
-                            Karta: {{ number_format($factByMethod['karta'] ?? 0, 0, '.', ' ') }} |
-                            Naqt: {{ number_format($factByMethod['naqt'] ?? 0, 0, '.', ' ') }}
+                            Karta: {{ number_format($factByMethod['karta'], 0, '.', ' ') }} |
+                            Naqt: {{ number_format($factByMethod['naqt'], 0, '.', ' ') }}
                         </div>
+                        <div class="mt-3"><strong>Oylik mijozlar umumiy:</strong></div>
+                        <div><strong>Plan:</strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
+                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>
+
                     </div>
-
-
 
                 </div>
                 <div class="card-header">
@@ -93,24 +165,24 @@
                     @csrf
                     <input type="hidden" name="order_date" value="{{ request('order_date', now()->format('Y-m-d')) }}">
                     <div class="table-responsive mt-3" >
-                        <table class="table table-bordered">
+                        <table class="table table-bordered customTable">
                             <thead>
                             <tr>
-                                <th>ID</th>
+                                <th style="width: 47px" class="sortTable"><span style="margin-left: 8px">ID</span></th>
                                 <th>Mijoz</th>
-                                <th>Balans</th>
-                                <th>Telefon</th>
+                                <th style="background: #F5F5F7 !important;">Balance</th>
+                                <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
                                 @foreach($meals as $index => $meal)
                                     <th style="color: {{ $colors[$index % count($colors)] }};">
                                         {{ $meal->name }}
                                     </th>
                                 @endforeach
-                                <th>T</th>
+                                <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
                                 <th>Cola</th>
                                 <th>Dostavka</th>
                                 <th>Kuryer</th>
                                 <th>To‘lov</th>
-                                <th>Umumiy</th>
+                                <th style="background: #F5F5F7 !important;">Jami</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -119,7 +191,7 @@
 
                                     <td><span class="row-index">{{ $i + 1 }}</span></td>
                                     <td>
-                                        <select name="orders[{{ $i }}][customer_id]" class="form-control customer-select select2" required>
+                                        <select  style="border: none; outline: none" name="orders[{{ $i }}][customer_id]" class="form-control customer-select select2" required>
                                             <option value="">Tanlang</option>
                                             @foreach($customers as $customer)
                                                 <option value="{{ $customer->id }}"
@@ -131,11 +203,11 @@
                                             @endforeach
                                         </select>
                                     </td>
-                                    <td>
-                                        <input type="text" name="orders[{{ $i }}][balance]" class="form-control customer-balance" readonly value="{{ old("orders.$i.balance") }}">
+                                    <td style="background: #F5F5F7 !important;">
+                                        <input style="background: #F5F5F7 !important; border: none" type="text" name="orders[{{ $i }}][balance]" class="form-control customer-balance" readonly value="{{ old("orders.$i.balance") }}">
                                     </td>
                                     <td>
-                                        <input type="text"
+                                        <input style="background: #fff !important; border: none" type="text"
                                                name="orders[{{ $i }}][phone]"
                                                class="form-control customer-phone copy-phone"
                                                readonly
@@ -145,7 +217,7 @@
 
                                     @foreach($meals as $meal)
                                         <td>
-                                            <input type="number"
+                                            <input style="background: #fff !important; border: none" type="number"
                                                    name="orders[{{ $i }}][meals][{{ $meal->id }}]"
                                                    class="form-control meal-input"
                                                    data-price="{{ number_format($meal->price, 3, '.', ' ') }}"
@@ -154,11 +226,11 @@
                                         </td>
                                     @endforeach
 
-                                    <td><input type="total_meals" class="form-control total-meals" readonly value="{{ old("orders.$i.total_meals") }}"></td>
-                                    <td><input type="number" name="orders[{{ $i }}][cola]" class="form-control cola-input" data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
-                                    <td><input type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>
+                                    <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none" type="total_meals" class="form-control total-meals" readonly value="{{ old("orders.$i.total_meals") }}"></td>
+                                    <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][cola]" class="form-control cola-input" data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
+                                    <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>
                                     <td>
-                                        <select name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
+                                        <select style="border: none; outline: none" name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
                                             @foreach($drivers as $driver)
                                                 <option value="{{ $driver->id }}" {{ old("orders.$i.driver_id") == $driver->id ? 'selected' : '' }}>
                                                     {{ $driver->name }}
@@ -167,13 +239,13 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <select name="orders[{{ $i }}][payment_type]" class="form-control payment-type">
+                                        <select style="border: none; outline: none" name="orders[{{ $i }}][payment_type]" class="form-control payment-type">
                                             <option value="naqt" {{ old("orders.$i.payment_type") == 'naqt' ? 'selected' : '' }}>Naqd</option>
                                             <option value="karta" {{ old("orders.$i.payment_type") == 'karta' ? 'selected' : '' }}>Karta</option>
                                             <option value="transfer" {{ old("orders.$i.payment_type") == 'transfer' ? 'selected' : '' }}>Bank orqali</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" class="form-control total-sum" readonly value="{{ old("orders.$i.total_sum") }}"></td>
+                                    <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none" type="text" class="form-control total-sum" readonly value="{{ old("orders.$i.total_sum") }}"></td>
                                 </tr>
                             @endfor
                             </tbody>
@@ -186,13 +258,13 @@
     </div>
     <div class="col-19 col-md-19 col-lg-19">
 
-        <form method="GET" class="form-inline mt-5 mb-3">
-            <div class="form-group">
-                <label for="order_date_search" class="mr-2">Sana bo‘yicha qidirish:</label>
-                <input type="date" id="order_date_search" name="order_date" class="form-control mr-2" value="{{ request('order_date', now()->format('Y-m-d')) }}">
-                <button type="submit" class="btn btn-primary">Qidirish</button>
-            </div>
-        </form>
+{{--        <form method="GET" class="form-inline mt-5 mb-3">--}}
+{{--            <div class="form-group">--}}
+{{--                <label for="order_date_search" class="mr-2">Sana bo‘yicha qidirish:</label>--}}
+{{--                <input type="date" id="order_date_search" name="order_date" class="form-control mr-2" value="{{ request('order_date', now()->format('Y-m-d')) }}">--}}
+{{--                <button type="submit" class="btn btn-primary">Qidirish</button>--}}
+{{--            </div>--}}
+{{--        </form>--}}
 
 
 
@@ -204,44 +276,55 @@
                     <h5>So‘nggi Buyurtmalar</h5>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
+                    <table class="table table-bordered mb-0 customTable">
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>#</th>
+                            <th style="width: 47px" class="sortTable"><span style="margin-left: 8px">ID</span></th>
+                            <th>№</th>
                             <th>Mijoz</th>
-                            <th>Tel</th>
-                            <th>Balance</th>
-                            @foreach($meals as $meal)
-                                <th>{{ $meal->name }}</th>
+                            <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
+                            <th style="background: #F5F5F7 !important;">Balance</th>
+                            @php
+                                $colors = ['#4B4DFF', '#00A452', '#E40089', '#ED0000'];
+                            @endphp
+
+                            @foreach($meals as $index => $meal)
+                                <th style="color: {{ $colors[$index % count($colors)] }};">{{ $meal->name }}</th>
                             @endforeach
-                            <th>T</th>
+                            <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
                             <th>Cola</th>
                             <th>Dostavka</th>
                             <th>Kuryer</th>
                             <th>To‘lov</th>
-                            <th>Jami</th>
+                            <th style="background: #F5F5F7 !important;">Jami</th>
                             <th>Olindi</th>
-                            <th></th>
+                            <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
                         </tr>
                         </thead>
                         <tbody>
                         @foreach($latestOrders as $order)
                             <tr>
-                                <td>{{ $order->id }}</td>
+                                <td class="sortTable"><span style="margin-left: 8px">{{ $order->id }}</span></td>
                                 <td>{{ $order->daily_order_number }}</td>
-                                <td>{{ $order->customer->name ?? '-' }}</td>
-                                <td onclick="copyToClipboard('{{ $order->customer->phone }}')">
+                                <td>
+                                    @if(isset($order->customer) && $order->customer->type === 'oylik')
+                                        <span style="color: blue;">{{ $order->customer->name }}</span>
+                                    @else
+                                        {{ $order->customer->name ?? '-' }}
+                                    @endif
+                                </td>
+                                <td style="background: #F5F5F7 !important" onclick="copyToClipboard('{{ $order->customer->phone }}')">
                                     @if ($order->customer && $order->customer->phone)
-                                        <a href="tel:{{ $order->customer->phone }}" style="text-decoration: none; color: inherit;">
-                                            📞
+                                        <a href="tel:{{ $order->customer->phone }}" style="text-decoration: none; color: inherit; margin-left: 3px">
+                                            <img src="{{asset('/img/eye.svg')}}"
                                         </a>
                                     @else
                                         -
                                     @endif
                                 </td>
 
-                                <td class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
+
+                                <td style="background: #F5F5F7 !important;" class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
                                     {{ $order->customer->balance }}
                                 </td>
                                 @php $totalMeals = 0; @endphp
@@ -256,17 +339,36 @@
                                     @endphp
                                     <td>{{ $mealQty > 0 ? $mealQty : '-' }}</td>
                                 @endforeach
-                                <td><strong>{{ $totalMeals }}</strong></td>
+                                <td style="background: #F5F5F7 !important;"><strong style="margin-left: 3px">{{ $totalMeals }}</strong></td>
                                 <td>{{ $order->cola_quantity }}</td>
                                 <td>{{ number_format($order->delivery_fee, 0, ',', ' ') }} </td>
                                 <td>{{ $order->driver->name ?? '-' }}</td>
-                                <td>{{ ucfirst($order->payment_method) }}</td>
-                                <td><strong>{{ number_format($order->total_amount, 0, ',', ' ') }} </strong></td>
-                                <td><strong>{{ number_format($order->received_amount, 0, ',', ' ') }} </strong></td>
-                                <td> <a href="{{ route('admin.orders.edit', $order->id) }}" class="icon-btn">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                <td>
+                                    {{ ucfirst($order->payment_method) }}
+                                    @if ($order->payment_method === 'naqt')
+                                        <img src="{{ asset('/img/zam-zam-cash.svg') }}" alt="Nax" width="20">
+                                    @elseif ($order->payment_method === 'karta')
+                                        <img src="{{ asset('/img/card.svg') }}" alt="Card" width="20">
+                                    @endif
                                 </td>
+                                <td style="background: #F5F5F7 !important;"><strong>{{ number_format($order->total_amount, 0, ',', ' ') }} </strong></td>
+                                <td>
+                                    <div class="received-amount-wrapper">
+                                        <!-- Display mode -->
+                                        <strong class="received-amount-display" style="color: {{ $order->received_amount < $order->total_amount ? 'red' : 'green' }}">
+                                            {{ number_format($order->received_amount, 0, ',', ' ') }} so‘m
+                                        </strong>
+
+                                        <!-- Edit mode -->
+                                        <div class="received-amount-edit d-none">
+                                            <input type="number" class="received-amount-input form-control" value="{{ $order->received_amount }}" style="width: 120px; display: inline-block;">
+                                            <button class="btn btn-sm btn-success save-received-amount" data-order-id="{{ $order->id }}">
+                                                <i class="fa fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="edit-received-amount" style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -359,6 +461,55 @@
             });
         }
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".edit-received-amount").forEach(function (editBtn) {
+                editBtn.addEventListener("click", function () {
+                    const wrapper = this.closest("tr").querySelector(".received-amount-wrapper");
+                    const display = wrapper.querySelector(".received-amount-display");
+                    const editDiv = wrapper.querySelector(".received-amount-edit");
+
+                    display.classList.add("d-none");
+                    editDiv.classList.remove("d-none");
+                });
+            });
+
+            document.querySelectorAll(".save-received-amount").forEach(function (saveBtn) {
+                saveBtn.addEventListener("click", function () {
+                    const orderId = this.getAttribute("data-order-id");
+                    const wrapper = this.closest(".received-amount-wrapper");
+                    const input = wrapper.querySelector(".received-amount-input");
+                    const display = wrapper.querySelector(".received-amount-display");
+                    const editDiv = wrapper.querySelector(".received-amount-edit");
+
+                    const newValue = parseInt(input.value) || 0;
+
+                    // AJAX orqali serverga yuborish
+                    fetch(`/admin/orders/${orderId}/update-received-amount`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ received_amount: newValue })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                display.textContent = newValue.toLocaleString('uz-UZ') + " so‘m";
+                                display.style.color = (newValue < data.total_amount) ? "red" : "green";
+
+                                editDiv.classList.add("d-none");
+                                display.classList.remove("d-none");
+                            } else {
+                                alert("Xatolik yuz berdi: " + data.message);
+                            }
+                        });
+                });
+            });
+        });
+    </script>
+
 
 
 @endsection

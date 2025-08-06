@@ -32,121 +32,38 @@
 
 @endsection
 @section('content')
-    <div class="row">
-        <div class="col-4">
-            <div class="card mb-0">
-                <div class="card-body">
-                    <ul class="nav nav-pills">
-                        <li class="nav-item">
-                            <a class="nav-link active " href="{{ route('admin.customers.edit',$customer->id) }}">Anketa <span class="badge badge-white"></span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link " href="{{ route('admin.customers.show',$customer->id) }}">Buyurtmalar <span class="badge badge-primary"></span></a>
-                        </li>
-
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    <form action="{{ route('admin.customers.update', $customer->id) }}" method="POST">
-        @csrf
-        @method('PUT')
-
 
         <div class="row">
-            <div class="col-10 col-md-4 col-lg-4">
-
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Mijoz kartojkasi</h4>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="form-group status-group">
-                            <label>Status</label>
-                            <select class="form-control" name="status" >
-                                <option value="Active" {{ $customer->status == 'Active' ? 'selected' : '' }}>Aktiv</option>
-                                <option value="Blok" {{ $customer->status == 'Blok' ? 'selected' : '' }}>Blok</option>
-                            </select>
-
-                        </div>
-
-                        <div class="form-group">
-                            <label>Fio</label>
-                            <input type="text" name="name" class="form-control"  placeholder="fio..." value="{{$customer->name}}">
-                        </div>
-                        <div class="form-group">
-                            <label>Telefon</label>
-                            <input type="text"  name="phone"  placeholder="telefon..." class="form-control" value="{{$customer->phone}}">
-                        </div>
-                        <div class="form-group">
-                            <label>Telegram</label>
-                            <input type="text"  name="telegram"  placeholder="telegram..." class="form-control" value="{{$customer->telegram}}">
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="col-10 col-md-4 col-lg-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Manzil</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="map-coords">Karta lokatsiya</label>
-                            <input type="text" name="location_coordinates" id="map-coords" class="form-control" value="{{ $customer->location_coordinates }}">
-                            <div id="map" style="height: 350px; border-radius: 8px; margin-top: 10px;"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Tuman</label>
-                            <input type="text" name="address" class="form-control" value="{{$customer->address}}">
-                        </div>
-                        <div class="form-group">
-                            <label>Manzil</label>
-                            <input type="text" name="district" class="form-control" value="{{$customer->district}}">
-
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-            <div class="col-10 col-md-4 col-lg-4">
-                <div class="card">
-
-                    <div class="card-header">
-                        <h4>Oylik turi</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group status-group">
-                            <label>Turini tanlang</label>
-                            <select class="form-control" name="type" >
-                                <option value="oylik" {{ $customer->type == 'oylik' ? 'selected' : '' }}>Oylik mijoz</option>
-                                <option value="odiy" {{ $customer->type == 'odiy' ? 'selected' : '' }}>Odiy</option>
-                            </select>
-
-                        </div>
-                        <div class="form-group">
-                            <label>Balans (jami)</label>
-                            <input type="text" readonly class="form-control" value="{{ number_format($customer->balance, 3, '.', ' ') }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Balans to'ldirish</label>
-                            <input type="text" name="balance" class="form-control" value="0.00">
-                            <a href="{{ route('admin.cusomers.histories', $customer->id) }}" class="icon-btn">
-                                Balans toldirish tarixi
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <h2>{{ $customer->name }} - Balans Tarixi</h2>
+                <a class="nav-link " href="{{ route('admin.customers.index') }}">Orqaga <span class="badge badge-primary"></span></a>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Miqdor</th>
+                    <th>Tur</th>
+                    <th>Tavsif</th>
+                    <th>Sana</th>
+                </tr>
+                </thead>
+                <tbody>
+                @forelse ($customer->balanceHistories as $history)
+                    <tr>
+                        <td>{{ $history->id }}</td>
+                        <td>{{ $history->amount }}</td>
+                        <td>{{ ucfirst($history->type) }}</td>
+                        <td>{{ $history->description }}</td>
+                        <td>{{ $history->created_at->format('Y-m-d H:i') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5">Balans tarixi mavjud emas</td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="text-center">
-            <button class="btn btn-primary">Saqlash</button>
-        </div>
-        <form>
+
             @endsection
             @section('js')
                 <script src="/admin/assets/js/app.min.js"></script>
@@ -168,7 +85,7 @@
                 <script src="/admin/assets/js/custom.js"></script>
                 <!-- Google Maps JS API yuklash (key bilan) -->
 
-{{--                <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap" async defer></script>--}}
+                {{--                <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap" async defer></script>--}}
 
                 <script>
                     let map;
