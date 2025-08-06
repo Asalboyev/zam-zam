@@ -134,7 +134,7 @@
                                             'received' => 0,
                                         ];
                                     }
-                                    $driverSums[$customerId]['received'] += $order->received_amount;
+                                    $driverSums[$customerId]['received'] += $order->total_amount;
                                 @endphp
                             @endif
                         @endforeach
@@ -156,13 +156,9 @@
                         <div class="mt-3"><strong>Oylik mijozlar umumiy:</strong></div>
                         <div><strong></strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
 {{--                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
-
                     </div>
-
                 </div>
-
-                @if(!empty($DailyMeal))
-
+                @if(!empty($dailyMeals))
                 <div class="card-header">
                 <form method="POST" action="{{ route('admin.orders.store') }}">
                     @csrf
@@ -261,9 +257,7 @@
                     <div class="alert alert-warning">
                         Ovqat mavjud emas
                     </div>
-
                 @endif
-
         </div>
     </div>
     <div class="col-19 col-md-19 col-lg-19">
@@ -276,10 +270,7 @@
 {{--            </div>--}}
 {{--        </form>--}}
 
-
-
     </div>
-
     @if(isset($latestOrders) && count($latestOrders) > 0)
             <div class="card mt-2">
                 <div class="card-header">

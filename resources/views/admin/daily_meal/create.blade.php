@@ -48,6 +48,7 @@
                                class="form-control"
                                min="1"
                                step="1"
+                               required
                                pattern="[1-9][0-9]*"
                                oninput="validity.valid||(value='');"
                                value="{{ old('count', isset($item->count) ? $item->count : '') }}">

@@ -124,7 +124,13 @@
                                 <td class="p-0 text-center">
                                   {{$iteam->id}}
                                 </td>
-                                <td>{{$iteam->name}}</td>
+                                <td>
+                                    @if(isset($iteam->id) && $iteam->type === 'oylik')
+                                        <span style="color: blue;">{{ $iteam->name }}</span>
+                                    @else
+                                        {{ $iteam->name ?? '-' }}
+                                    @endif
+                                </td>
                                 <td> {{$iteam->phone}}</td>
                                 <td> {{$iteam->type}}   </td>
                                 <td> {{$iteam->status}}   </td>

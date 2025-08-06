@@ -304,9 +304,8 @@ class OrdersController extends Controller
                 }
 
                 $customer = \App\Models\Customer::findOrFail($orderData['customer_id']);
-                $dailyOrderNumber = \App\Models\Order::where('customer_id', $customer->id)
-                        ->whereDate('order_date', $orderDate)
-                        ->count() + 1;
+                $currentDailyCount = Order::whereDate('order_date', $orderDate)->count();
+
 
                 // Balansni floatga aylantirish
                 $cleanBalance = floatval(str_replace([' ', ','], ['', '.'], $customer->balance));
@@ -315,6 +314,8 @@ class OrdersController extends Controller
                 $meals = $orderData['meals'] ?? [];
                 $mealIds = array_keys($meals);
                 $mealQuantities = array_values($meals);
+                $dailyOrderNumber = ++$currentDailyCount;
+
 
                 $mealData = [
                     'meal_1_id' => $mealIds[0] ?? null,
