@@ -158,7 +158,7 @@
 {{--                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
                     </div>
                 </div>
-                @if(!empty($dailyMeals))
+                @if($dailyMeals->isNotEmpty())
                 <div class="card-header">
                 <form method="POST" action="{{ route('admin.orders.store') }}">
                     @csrf
