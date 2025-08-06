@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Meal;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+
 class DailyMealController extends Controller
 {
 
@@ -45,32 +46,19 @@ class DailyMealController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'date' => [
-                'required',
-                'date',
-                function ($attribute, $value, $fail) {
-                    $count = DailyMeal::where('date', $value)->count();
-                    if ($count >= 4) {
-                        $fail("{$value} sanasiga allaqachon 4 ta ovqat qo‘shilgan.");
-                    }
-                }
-            ],
-            'meal_id' => 'required|exists:meals,id', // faqat bitta id keladi
+        $dailyMeal = DailyMeal::create([
+            'date' => $request->date,
         ]);
 
-        // Sana bo‘yicha mavjud DailyMeal topamiz yoki yaratamiz
-        $dailyMeal = DailyMeal::firstOrCreate([
-            'date' => $validated['date'],
+        DB::table('daily_meal_items')->insert([
+            'daily_meal_id' => $dailyMeal->id,
+            'meal_id' => $request->meal_id,
+            'count' => $request->count,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // Yangi ovqatni mavjud ovqatlarga qo‘shamiz
-        if (!$dailyMeal->items->contains($validated['meal_id'])) {
-            $dailyMeal->items()->attach($validated['meal_id']);
-        }
-
-        return redirect()->route('admin.daily_meal.index')
-            ->with('success', 'Ovqat muvaffaqiyatli qo‘shildi.');
+        return redirect()->route('admin.daily_meal.index')->with('success', 'Saved');
     }
 
     public function edit($id)

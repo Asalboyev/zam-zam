@@ -28,14 +28,7 @@
                     <h4>Kunlik Maxsulot</h4>
                 </div>
                 <div class="card-body">
-
-                    @unless(isset($item)) {{-- faqat yaratishda date chiqadi --}}
-                    <div class="form-group">
-                        <label>Sana</label>
-                        <input type="date" name="date" class="form-control" value="{{ old('date', $dailyMeal->date ?? '') }}">
-                    </div>
-                    @endunless
-
+                    <input type="hidden" name="date" value="{{ request('order_date', now()->format('Y-m-d')) }}">
                     <div class="form-group">
                         <label>Ovqat nomi</label>
                         <select class="form-control select2" name="meal_id" required>

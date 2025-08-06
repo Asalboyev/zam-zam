@@ -22,6 +22,16 @@
         <h4>Tags table</h4>
         <div class="card-header-form">
             <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Create</a>
+{{--            <div class="card-header-form">--}}
+{{--                <div id="buttonContainer" class="button-wrapper">--}}
+{{--                    @foreach ($buttons as $button)--}}
+{{--                        <a href="{{ route($button['route']) }}" class="btn btn-primary mb-1">{{ $button['label'] }}</a>--}}
+{{--                    @endforeach--}}
+{{--                </div>--}}
+{{--                @if(count($buttons) > 4)--}}
+{{--                    <button id="toggleButton" class="btn btn-secondary">Show More</button>--}}
+{{--                @endif--}}
+{{--            </div>--}}
         </div>
 
       </div>
