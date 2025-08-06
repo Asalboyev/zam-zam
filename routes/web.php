@@ -35,6 +35,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function(){
     Route::resource('customers', CustomersController::class);
     Route::resource('products', ProductsController::class);
     Route::resource('daily_meal', DailyMealController::class);
+
     Route::put('/daily_meal/item-update/{id}', [DailyMealController::class, 'itemUpdate'])->name('daily_meal.item_update');
 
 

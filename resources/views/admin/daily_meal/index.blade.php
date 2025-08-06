@@ -71,7 +71,7 @@
                                 <td>{{ $item->name }}</td>
                                 <td>{{ $item->pivot->count }}</td> {{-- Bu yerda count chiqadi --}}
                                 <td>
-                                    <a href="{{ route('admin.daily_meal.edit', $item->id) }}" class="icon-btn">
+                                    <a href="{{ route('admin.daily_meal.edit', $item->pivot->id) }}" class="icon-btn">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 </td>
