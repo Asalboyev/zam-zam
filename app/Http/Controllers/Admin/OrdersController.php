@@ -201,6 +201,105 @@ class OrdersController extends Controller
             'factByMethod'     // ✅ YANGI
         ));
     }
+    public function show(Request $request)
+    {
+        $date = $request->input('order_date', now()->format('Y-m-d'));
+
+        $customers = Customer::all();
+        $drivers = Driver::where('is_active', true)->get();
+
+        // Bugungi orderlar
+        $latestOrders = Order::with(['customer', 'meal1', 'meal2', 'meal3', 'meal4', 'driver'])
+            ->where('order_date', $date)
+            ->orderBy('created_at', 'desc')
+            ->take(50)
+            ->get();
+
+        // Umumiy mijoz va haydovchi summalari
+        $customerTotal = $latestOrders->sum('total_amount');
+        $driverTotal = $latestOrders->sum('received_amount');
+
+        // Plan - payment_type bo‘yicha
+        $planByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
+            return $group->sum('total_amount');
+        });
+
+        // Fakt - payment_type bo‘yicha
+        $factByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
+            return $group->sum('received_amount');
+        });
+
+        // ✅ Plan (payment_method bo‘yicha - customer_price)
+        $planByMethod = $latestOrders->groupBy('payment_method')->map(function ($group) {
+            return $group->sum('total_amount');
+        });
+
+        // ✅ Fakt (payment_method bo‘yicha - received_amount)
+        $factByMethod = $latestOrders->groupBy('payment_method')->map(function ($group) {
+            return $group->sum('received_amount');
+        });
+
+        // Bugungi DailyMeal'lar (itemlar bilan birga)
+        $dailyMeals = DailyMeal::with('items')->where('date', $date)->get();
+
+        // Barcha itemlar kolleksiyasi
+        $meals = $dailyMeals->flatMap(function ($dailyMeal) {
+            return $dailyMeal->items;
+        })->groupBy('id')->map(function ($groupedItems) {
+            $meal = $groupedItems->first();
+            $totalCount = $groupedItems->sum(function ($item) {
+                return $item->pivot->count ?? 0;
+            });
+
+            $meal->total_count = $totalCount;
+            return $meal;
+        })->values();
+
+        // Har bir ovqat bo‘yicha statistikani tayyorlash
+        $mealStats = [];
+
+        foreach ($dailyMeals as $dailyMeal) {
+            foreach ($dailyMeal->items as $item) {
+                $orderedCount = $latestOrders->filter(function ($order) use ($item) {
+                    return in_array($item->id, [
+                        $order->meal_1_id,
+                        $order->meal_2_id,
+                        $order->meal_3_id,
+                        $order->meal_4_id
+                    ]);
+                })->count();
+
+                if (!isset($mealStats[$item->id])) {
+                    $mealStats[$item->id] = [
+                        'meal_name' => $item->name,
+                        'initial_count' => $item->pivot->count,
+                        'ordered_count' => $orderedCount,
+                        'remaining' => $item->pivot->count - $orderedCount,
+                    ];
+                } else {
+                    $mealStats[$item->id]['initial_count'] += $item->pivot->count;
+                    $mealStats[$item->id]['ordered_count'] += $orderedCount;
+                    $mealStats[$item->id]['remaining'] = $mealStats[$item->id]['initial_count'] - $mealStats[$item->id]['ordered_count'];
+                }
+            }
+        }
+
+        return view('admin.orders.show', compact(
+            'date',
+            'customers',
+            'drivers',
+            'dailyMeals',
+            'meals',
+            'mealStats',
+            'latestOrders',
+            'customerTotal',
+            'driverTotal',
+            'planByPaymentType',
+            'factByPaymentType',
+            'planByMethod',    // ✅ YANGI
+            'factByMethod'     // ✅ YANGI
+        ));
+    }
 
 
 
@@ -237,76 +336,6 @@ class OrdersController extends Controller
         ));
     }
 
-
-
-    public function show(Request $request)
-    {
-        $date = $request->input('order_date', now()->format('Y-m-d'));
-
-        // Mijozlar va haydovchilar
-        $customers = Customer::all();
-        $drivers = Driver::where('is_active', true)->get();
-
-        // O'sha kunga tegishli ovqatlar
-        $dailyMeal = DailyMeal::with('items')->where('date', $date)->first();
-        $meals = $dailyMeal ? $dailyMeal->items : collect();
-
-        // O'sha kundagi buyurtmalar
-        $latestOrders = Order::with(['customer', 'meal1', 'meal2', 'meal3', 'meal4', 'driver'])
-            ->where('order_date', $date)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // Haydovchilar bo‘yicha umumiy summani hisoblash
-        $driverTotals = $latestOrders->groupBy('driver_id')->map(function ($orders) {
-            return [
-                'name' => optional($orders->first()->driver)->name ?? 'Noma’lum',
-                'total' => $orders->sum('total_price'),
-            ];
-        });
-
-        // Mijozlar bo‘yicha umumiy summani hisoblash
-        $customerTotals = $latestOrders->groupBy('customer_id')->map(function ($orders) {
-            return [
-                'name' => optional($orders->first()->customer)->name ?? 'Noma’lum',
-                'total' => $orders->sum('total_price'),
-            ];
-        });
-
-        // Har bir ovqat nechta marta buyurtma qilinganini hisoblash (asosiy blok)
-        $mealCounts = [];
-
-        foreach ($meals as $meal) {
-            $count = 0;
-
-            foreach ($latestOrders as $order) {
-                if ($order->meal_1_id == $meal->id) $count += $order->meal_1_quantity ?? 0;
-                if ($order->meal_2_id == $meal->id) $count += $order->meal_2_quantity ?? 0;
-                if ($order->meal_3_id == $meal->id) $count += $order->meal_3_quantity ?? 0;
-                if ($order->meal_4_id == $meal->id) $count += $order->meal_4_quantity ?? 0;
-            }
-
-            $mealCounts[] = [
-                'name' => $meal->name,
-                'count' => $count
-            ];
-        }
-
-        // Viewga yuborish
-        return view('admin.orders.show', compact(
-            'date',
-            'customers',
-            'drivers',
-            'meals',
-            'latestOrders',
-            'driverTotals',
-            'customerTotals',
-            'mealCounts'
-        ));
-    }
-
-
-
     public function getMealsByDate(Request $request)
     {
         $date = $request->input('date');
@@ -327,7 +356,6 @@ class OrdersController extends Controller
             }),
         ]);
     }
-
 
     public function store(Request $request)
     {
@@ -463,43 +491,6 @@ class OrdersController extends Controller
             return redirect()->back()->with('error', 'Xatolik: ' . $e->getMessage());
         }
     }
-
-
-
-
-//    public function edit($id)
-//    {
-//        $order = \App\Models\Order::findOrFail($id);
-//        $customers = \App\Models\Customer::all();
-//        $drivers = \App\Models\Driver::all();
-//        $meals = \App\Models\Meal::all();
-//        $colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown']; // kerak bo‘lsa
-//
-//        // Orderga tegishli meals ni associative tarzda tayyorlash
-//        $mealsData = [];
-//
-//        if ($order->meal_1_id) {
-//            $mealsData[$order->meal_1_id] = $order->meal_1_quantity;
-//        }
-//        if ($order->meal_2_id) {
-//            $mealsData[$order->meal_2_id] = $order->meal_2_quantity;
-//        }
-//        if ($order->meal_3_id) {
-//            $mealsData[$order->meal_3_id] = $order->meal_3_quantity;
-//        }
-//        if ($order->meal_4_id) {
-//            $mealsData[$order->meal_4_id] = $order->meal_4_quantity;
-//        }
-//
-//        return view('admin.orders.edit', compact(
-//            'order',
-//            'customers',
-//            'drivers',
-//            'meals',
-//            'colors',
-//            'mealsData'
-//        ));
-//    }
 
     public function edit(Request $request, $id)
     {
@@ -723,8 +714,6 @@ class OrdersController extends Controller
             return redirect()->back()->with('error', 'Xatolik: ' . $e->getMessage());
         }
     }
-
-
 
 
 

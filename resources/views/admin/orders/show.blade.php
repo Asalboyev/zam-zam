@@ -29,20 +29,21 @@
                 @endforeach
 
             </div>
-
+{{--            <div>--}}
+{{--                <h6 class="fw-bold">Haydovchilar:</h6>--}}
+{{--                @foreach($latestOrders as $driver)--}}
+{{--                    <div>{{ $driver->driver->name }}: {{ number_format($driver['received_amount'], 0, '.', ' ') }} so'm</div>--}}
+{{--                @endforeach--}}
+{{--            </div>--}}
             <div>
-                <h6 class="fw-bold">Haydovchilar:</h6>
-                @foreach($latestOrders as $driver)
-                    <div>{{ $driver->driver->name }}: {{ number_format($driver['received_amount'], 0, '.', ' ') }} so'm</div>
-                @endforeach
-            </div>
-            <div>
-                <h6 class="fw-bold">Ovqatlar soni:</h6>
-                @foreach($mealCounts as $meal)
-                    @if($meal['count'] > 0)
-                        <div>{{ $meal['name'] }}: {{ $meal['count'] }} ta</div>
-                    @endif
-                @endforeach
+                <div><strong>Plan:</strong>
+                    Karta: {{ number_format($planByMethod['karta'] ?? 0, 0, '.', ' ') }} |
+                    Naqt: {{ number_format($planByMethod['naqt'] ?? 0, 0, '.', ' ') }}
+                </div>
+                <div><strong>Fakt:</strong>
+                    Karta: {{ number_format($factByMethod['karta'] ?? 0, 0, '.', ' ') }} |
+                    Naqt: {{ number_format($factByMethod['naqt'] ?? 0, 0, '.', ' ') }}
+                </div>
             </div>
 
         </div>
