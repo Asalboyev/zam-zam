@@ -105,10 +105,24 @@
                             <span>×</span>
                         </button>
                         {{ session('success') }}
+
                     </div>
 
                 </div>
             @endif
+                @foreach($latestOrders as $i => $order)
+                    @if($errors->has("orders.$i.meals"))
+                        <div class="alert alert-danger alert-dismissible show fade">
+                            <div class="alert-body">
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>×</span>
+                                </button>
+                                {{ $errors->first("orders.$i.meals") }}
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+
                 <div style="display: flex; justify-content: space-between; padding: 15px 25px">
                     <div>
                         @foreach($meals as $index => $meal)
@@ -218,15 +232,15 @@
 
                                     @foreach($meals as $meal)
                                         <td>
-                                            <input style="background: #fff !important; border: none" type="number"
+                                            <input style="background: #fff !important; border: none"
+                                                   type="number"
                                                    name="orders[{{ $i }}][meals][{{ $meal->id }}]"
-                                                   class="form-control meal-input"
+                                                   class="form-control meal-input @error("orders.$i.meals") is-invalid @enderror"
                                                    data-price="{{ number_format($meal->price, 3, '.', ' ') }}"
                                                    min="0"
                                                    value="{{ old("orders.$i.meals.$meal->id", 0) }}">
                                         </td>
                                     @endforeach
-
                                     <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none" type="total_meals" class="form-control total-meals" readonly value="{{ old("orders.$i.total_meals") }}"></td>
                                     <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][cola]" class="form-control cola-input" data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
                                     <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>

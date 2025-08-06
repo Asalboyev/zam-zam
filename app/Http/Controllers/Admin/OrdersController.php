@@ -11,6 +11,8 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\BalanceHistory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\MessageBag;
+
 
 class OrdersController extends Controller
 {
@@ -289,33 +291,176 @@ class OrdersController extends Controller
         ]);
     }
 
+//    public function store(Request $request)
+//    {
+//        $orders = $request->input('orders');
+//        $orderDate = $request->input('order_date') ?? yesterday()->format('Y-m-d');
+//
+//        try {
+//            DB::beginTransaction();
+//
+//            foreach ($orders as $orderData) {
+//                // Mijoz tanlanmagan bo‘lsa, o'tkazib yuboriladi
+//                if (!isset($orderData['customer_id']) || !is_numeric($orderData['customer_id'])) {
+//                    continue;
+//                }
+//
+//                $customer = \App\Models\Customer::findOrFail($orderData['customer_id']);
+//                $currentDailyCount = Order::whereDate('order_date', $orderDate)->count();
+//
+//
+//                // Balansni floatga aylantirish
+//                $cleanBalance = floatval(str_replace([' ', ','], ['', '.'], $customer->balance));
+//
+//                // Ovqatlar
+//                $meals = $orderData['meals'] ?? [];
+//                $mealIds = array_keys($meals);
+//                $mealQuantities = array_values($meals);
+//                $dailyOrderNumber = ++$currentDailyCount;
+//
+//
+//                $mealData = [
+//                    'meal_1_id' => $mealIds[0] ?? null,
+//                    'meal_1_quantity' => intval($mealQuantities[0] ?? 0),
+//                    'meal_2_id' => $mealIds[1] ?? null,
+//                    'meal_2_quantity' => intval($mealQuantities[1] ?? 0),
+//                    'meal_3_id' => $mealIds[2] ?? null,
+//                    'meal_3_quantity' => intval($mealQuantities[2] ?? 0),
+//                    'meal_4_id' => $mealIds[3] ?? null,
+//                    'meal_4_quantity' => intval($mealQuantities[3] ?? 0),
+//                ];
+//
+//                $colaQty = intval($orderData['cola'] ?? 0);
+//                $colaPrice = 15000;
+//                $colaTotal = $colaQty * $colaPrice;
+//
+//                $mealTotal = 0;
+//                foreach ($meals as $mealId => $qty) {
+//                    $meal = \App\Models\Meal::find($mealId);
+//                    if ($meal) {
+//                        $mealTotal += $meal->price * intval($qty);
+//                    }
+//                }
+//
+//                $totalMealsQty = array_sum($mealQuantities);
+//                $deliveryFee = $totalMealsQty > 8
+//                    ? 0
+//                    : floatval(str_replace([' ', ','], ['', '.'], $orderData['delivery'] ?? 20000));
+//
+//                $total = $mealTotal + $colaTotal + $deliveryFee;
+//
+//                // Shart: balans yetarlimi yoki oylik mijoz
+//                $isOylikCustomer = strtolower($customer->type) == 'oylik';
+//
+//                if ($cleanBalance >= $total || $isOylikCustomer) {
+//                    // Order saqlanmoqda
+//                    $order = \App\Models\Order::create([
+//                        'customer_id' => $customer->id,
+//                        'order_date' => $orderDate,
+//
+//                        // Ovqatlar
+//                        'meal_1_id' => $mealData['meal_1_id'],
+//                        'meal_1_quantity' => $mealData['meal_1_quantity'],
+//                        'meal_2_id' => $mealData['meal_2_id'],
+//                        'meal_2_quantity' => $mealData['meal_2_quantity'],
+//                        'meal_3_id' => $mealData['meal_3_id'],
+//                        'meal_3_quantity' => $mealData['meal_3_quantity'],
+//                        'meal_4_id' => $mealData['meal_4_id'],
+//                        'meal_4_quantity' => $mealData['meal_4_quantity'],
+//
+//                        'cola_quantity' => $colaQty,
+//                        'delivery_fee' => $deliveryFee,
+//                        'driver_id' => $orderData['driver_id'] ?? null,
+//                        'payment_method' => $orderData['payment_type'] ?? 'cash',
+//                        'total_meals' => $totalMealsQty,
+//                        'total_amount' => $total,
+//                        'daily_order_number' => $dailyOrderNumber,
+//                    ]);
+//
+//                    // Balansdan ayirish
+//                    $customer->balance = $cleanBalance - $total;
+//                    $customer->save();
+//
+//                    \App\Models\BalanceHistory::create([
+//                        'customer_id' => $customer->id,
+//                        'amount' => $total,
+//                        'type' => 'order',
+//                        'description' => "Buyurtma #{$order->id} uchun balansdan yechildi.",
+//                    ]);
+//                    // ⬇️⬇️⬇️  SHU YERDA `daily_meal_items` dan count kamaytiramiz
+//                    $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
+//
+//                    foreach ($dailyMeals as $dailyMeal) {
+//                        foreach ($meals as $mealId => $qty) {
+//                            // Bu yerda $dailyMeal modelning obyekti, shuning uchun items() ishlaydi
+//                            $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
+//                            if ($item && $item->pivot) {
+//                                $currentCount = $item->pivot->count;
+//                                $newCount = max(0, $currentCount - intval($qty));
+//
+//                                // Pivot jadvalni yangilash
+//                                $dailyMeal->items()->updateExistingPivot($mealId, ['count' => $newCount]);
+//                            }
+//                        }
+//                    }
+//
+//                } else {
+//                    continue;
+//                }
+//            }
+//
+//            DB::commit();
+//            return redirect()->back()->with('success', 'Buyurtmalar muvaffaqiyatli saqlandi!');
+//        } catch (\Exception $e) {
+//            DB::rollBack();
+//
+//            logger()->error('Order save error', [
+//                'message' => $e->getMessage(),
+//                'trace' => $e->getTraceAsString(),
+//                'request_data' => $request->all(),
+//            ]);
+//
+//            return redirect()->back()->with('error', 'Xatolik: ' . $e->getMessage());
+//        }
+//    }
+
+
+
     public function store(Request $request)
     {
         $orders = $request->input('orders');
         $orderDate = $request->input('order_date') ?? yesterday()->format('Y-m-d');
+        $errors = new MessageBag();
 
         try {
             DB::beginTransaction();
 
-            foreach ($orders as $orderData) {
+            foreach ($orders as $i => $orderData) {
                 // Mijoz tanlanmagan bo‘lsa, o'tkazib yuboriladi
                 if (!isset($orderData['customer_id']) || !is_numeric($orderData['customer_id'])) {
                     continue;
                 }
 
+                $meals = $orderData['meals'] ?? [];
+                $totalMealQty = array_sum(array_map('intval', $meals));
+
+                if ($totalMealQty <= 0) {
+                    $errors->add("orders.$i.meals", "Kamida bitta ovqat tanlang (qator: " . ($i + 1) . ").");
+                    continue;
+                }
+
                 $customer = \App\Models\Customer::findOrFail($orderData['customer_id']);
-                $currentDailyCount = Order::whereDate('order_date', $orderDate)->count();
+                $customerOrderCount = \App\Models\Order::where('customer_id', $customer->id)
+                    ->whereDate('order_date', $orderDate)
+                    ->count();
 
+                $dailyOrderNumber = $customerOrderCount + 1;
 
-                // Balansni floatga aylantirish
+                // Balans
                 $cleanBalance = floatval(str_replace([' ', ','], ['', '.'], $customer->balance));
 
-                // Ovqatlar
-                $meals = $orderData['meals'] ?? [];
                 $mealIds = array_keys($meals);
                 $mealQuantities = array_values($meals);
-                $dailyOrderNumber = ++$currentDailyCount;
-
 
                 $mealData = [
                     'meal_1_id' => $mealIds[0] ?? null,
@@ -347,16 +492,12 @@ class OrdersController extends Controller
 
                 $total = $mealTotal + $colaTotal + $deliveryFee;
 
-                // Shart: balans yetarlimi yoki oylik mijoz
-                $isOylikCustomer = strtolower($customer->type) == 'oylik';
+                $isOylikCustomer = strtolower($customer->type) === 'oylik';
 
                 if ($cleanBalance >= $total || $isOylikCustomer) {
-                    // Order saqlanmoqda
                     $order = \App\Models\Order::create([
                         'customer_id' => $customer->id,
                         'order_date' => $orderDate,
-
-                        // Ovqatlar
                         'meal_1_id' => $mealData['meal_1_id'],
                         'meal_1_quantity' => $mealData['meal_1_quantity'],
                         'meal_2_id' => $mealData['meal_2_id'],
@@ -365,7 +506,6 @@ class OrdersController extends Controller
                         'meal_3_quantity' => $mealData['meal_3_quantity'],
                         'meal_4_id' => $mealData['meal_4_id'],
                         'meal_4_quantity' => $mealData['meal_4_quantity'],
-
                         'cola_quantity' => $colaQty,
                         'delivery_fee' => $deliveryFee,
                         'driver_id' => $orderData['driver_id'] ?? null,
@@ -375,7 +515,6 @@ class OrdersController extends Controller
                         'daily_order_number' => $dailyOrderNumber,
                     ]);
 
-                    // Balansdan ayirish
                     $customer->balance = $cleanBalance - $total;
                     $customer->save();
 
@@ -385,26 +524,29 @@ class OrdersController extends Controller
                         'type' => 'order',
                         'description' => "Buyurtma #{$order->id} uchun balansdan yechildi.",
                     ]);
-                    // ⬇️⬇️⬇️  SHU YERDA `daily_meal_items` dan count kamaytiramiz
+
                     $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
 
                     foreach ($dailyMeals as $dailyMeal) {
                         foreach ($meals as $mealId => $qty) {
-                            // Bu yerda $dailyMeal modelning obyekti, shuning uchun items() ishlaydi
                             $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
                             if ($item && $item->pivot) {
                                 $currentCount = $item->pivot->count;
                                 $newCount = max(0, $currentCount - intval($qty));
-
-                                // Pivot jadvalni yangilash
                                 $dailyMeal->items()->updateExistingPivot($mealId, ['count' => $newCount]);
                             }
                         }
                     }
 
                 } else {
+                    $errors->add("orders.$i.balance", "Balans yetarli emas yoki noto‘g‘ri mijoz turi (qator: " . ($i + 1) . ").");
                     continue;
                 }
+            }
+
+            if ($errors->isNotEmpty()) {
+                DB::rollBack();
+                return redirect()->back()->withErrors($errors)->withInput();
             }
 
             DB::commit();
@@ -418,7 +560,7 @@ class OrdersController extends Controller
                 'request_data' => $request->all(),
             ]);
 
-            return redirect()->back()->with('error', 'Xatolik: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Xatolik: ' . $e->getMessage())->withInput();
         }
     }
 
