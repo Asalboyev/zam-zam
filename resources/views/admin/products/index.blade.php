@@ -136,7 +136,7 @@
                                             <span class="badge badge-danger">Blok</span>
                                         @endif
                                     </td>
-                                    <td>{{ number_format($iteam->price, 3, '.', ' ') }}  so'm</td>
+                                    <td>{{ number_format($iteam->price, 2, '.', ' ') }}  so'm</td>
                                     <td >
                                         <form style="display: inline" action="{{ route('admin.products.destroy', $iteam->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
                                             @csrf
