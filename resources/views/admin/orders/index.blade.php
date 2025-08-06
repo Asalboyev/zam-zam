@@ -118,6 +118,7 @@
                             </div>
                         @endforeach
                     </div>
+                    @if($dailyMeals->isNotEmpty())
                     <div>
                         <h6 class="fw-bold">Driver:</h6>
                         @php
@@ -143,7 +144,6 @@
                             <div>{{ $driver['name'] }}: {{ number_format($driver['received'], 0, '.', ' ') }} so‘m</div>
                         @endforeach
                     </div>
-
                     <div>
                         <div><strong>Plan:</strong>
                             Karta: {{ number_format($planByMethod['karta'], 0, '.', ' ') }} |
@@ -157,7 +157,9 @@
                         <div><strong></strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
 {{--                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
                     </div>
+                    @endif
                 </div>
+
                 @if($dailyMeals->isNotEmpty())
                 <div class="card-header">
                 <form method="POST" action="{{ route('admin.orders.store') }}">
@@ -256,6 +258,8 @@
                 @else
                     <div class="alert alert-warning">
                         Ovqat mavjud emas
+                            <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Qo'shish </a>
+
                     </div>
                 @endif
         </div>
