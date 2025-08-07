@@ -245,7 +245,8 @@
                                         <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>
                                         <td>
                                             <select style="border: none; outline: none"  required name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
-                                                @foreach($drivers as $driver)
+                                                <option value="">Tanlang</option>
+                                            @foreach($drivers as $driver)
                                                     <option value="{{ $driver->id }}" {{ old("orders.$i.driver_id") == $driver->id ? 'selected' : '' }}>
                                                         {{ $driver->name }}
                                                     </option>
