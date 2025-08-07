@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('location_coordinates')->nullable();
 
             // Balance information
-            $table->decimal('balance', 12, 2)->default(0);
+            $table->decimal('balance', 12, 0)->default(0);
             $table->date('balance_due_date')->nullable();
 
             $table->timestamps();

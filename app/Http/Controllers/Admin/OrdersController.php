@@ -428,6 +428,7 @@ class OrdersController extends Controller
 
     public function store(Request $request)
     {
+        dd($request->all());
         $orders = $request->input('orders');
         $orderDate = $request->input('order_date') ?? yesterday()->format('Y-m-d');
         $errors = new MessageBag();

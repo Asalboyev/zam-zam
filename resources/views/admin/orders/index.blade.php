@@ -110,29 +110,29 @@
 
                 </div>
             @endif
-                @foreach($latestOrders as $i => $order)
-                    @if($errors->has("orders.$i.meals"))
-                        <div class="alert alert-danger alert-dismissible show fade">
-                            <div class="alert-body">
-                                <button type="button" class="close" data-dismiss="alert">
-                                    <span>×</span>
-                                </button>
-                                {{ $errors->first("orders.$i.meals") }}
-                            </div>
+            @foreach($latestOrders as $i => $order)
+                @if($errors->has("orders.$i.meals"))
+                    <div class="alert alert-danger alert-dismissible show fade">
+                        <div class="alert-body">
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>×</span>
+                            </button>
+                            {{ $errors->first("orders.$i.meals") }}
                         </div>
-                    @endif
-                @endforeach
-
-                <div style="display: flex; justify-content: space-between; padding: 15px 25px">
-                    <div>
-                        @foreach($meals as $index => $meal)
-                            <div style="color: {{ $colors[$index % count($colors)] }};">
-                                {{ $meal->name }}
-                                ({{ $meal->total_count }} ta)
-                            </div>
-                        @endforeach
                     </div>
-                    @if($dailyMeals->isNotEmpty())
+                @endif
+            @endforeach
+
+            <div style="display: flex; justify-content: space-between; padding: 15px 25px">
+                <div>
+                    @foreach($meals as $index => $meal)
+                        <div style="color: {{ $colors[$index % count($colors)] }};">
+                            {{ $meal->name }}
+                            ({{ $meal->total_count }} ta)
+                        </div>
+                    @endforeach
+                </div>
+                @if($dailyMeals->isNotEmpty())
                     <div>
                         <h6 class="fw-bold">Driver:</h6>
                         @php
@@ -169,366 +169,400 @@
                         </div>
                         <div class="mt-3"><strong>Oylik mijozlar umumiy:</strong></div>
                         <div><strong></strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
-{{--                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
-                    </div>
-                    @endif
-                </div>
-
-                @if($dailyMeals->isNotEmpty())
-                <div class="card-header">
-                <form method="POST" action="{{ route('admin.orders.store') }}">
-                    @csrf
-                    <input type="hidden" name="order_date" value="{{ request('order_date', now()->format('Y-m-d')) }}">
-                    <div class="table-responsive mt-3" >
-                        <table class="table table-bordered customTable">
-                            <thead>
-                            <tr>
-                                <th style="width: 47px" class="sortTable"><span style="margin-left: 8px">ID</span></th>
-                                <th>Mijoz</th>
-                                <th style="background: #F5F5F7 !important;">Balance</th>
-                                <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
-                                @foreach($meals as $index => $meal)
-                                    <th style="color: {{ $colors[$index % count($colors)] }};">
-                                        {{ $meal->name }}
-                                    </th>
-                                @endforeach
-                                <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
-                                <th>Cola</th>
-                                <th>Dostavka</th>
-                                <th>Kuryer</th>
-                                <th>To‘lov</th>
-                                <th style="background: #F5F5F7 !important;">Jami</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @for ($i = 0; $i < 1; $i++)
-                                <tr>
-
-                                    <td><span class="row-index">{{ $i + 1 }}</span></td>
-                                    <td>
-                                        <select  style="border: none; outline: none" name="orders[{{ $i }}][customer_id]" class="form-control customer-select select2" required>
-                                            <option value="">Tanlang</option>
-                                            @foreach($customers as $customer)
-                                                <option value="{{ $customer->id }}"
-                                                        data-phone="{{ $customer->phone }}"
-                                                        data-balance="{{ number_format($customer->balance, 3, '.', ' ') }}"
-                                                    {{ old("orders.$i.customer_id") == $customer->id ? 'selected' : '' }}>
-                                                    {{ $customer->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td style="background: #F5F5F7 !important;">
-                                        <input style="background: #F5F5F7 !important; border: none" type="text" name="orders[{{ $i }}][balance]" class="form-control customer-balance" readonly value="{{ old("orders.$i.balance") }}">
-                                    </td>
-                                    <td>
-                                        <input style="background: #fff !important; border: none" type="text"
-                                               name="orders[{{ $i }}][phone]"
-                                               class="form-control customer-phone copy-phone"
-                                               readonly
-                                               value="{{ old("orders.$i.phone") }}"
-                                               onclick="copyToClipboard(this)">
-                                    </td>
-
-                                    @foreach($meals as $meal)
-                                        <td>
-                                            <input style="background: #fff !important; border: none"
-                                                   type="number"
-                                                   name="orders[{{ $i }}][meals][{{ $meal->id }}]"
-                                                   class="form-control meal-input @error("orders.$i.meals") is-invalid @enderror"
-                                                   data-price="{{ number_format($meal->price, 3, '.', ' ') }}"
-                                                   min="0"
-                                                   value="{{ old("orders.$i.meals.$meal->id", 0) }}">
-                                        </td>
-                                    @endforeach
-                                    <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none" type="total_meals" class="form-control total-meals" readonly value="{{ old("orders.$i.total_meals") }}"></td>
-                                    <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][cola]" class="form-control cola-input" data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
-                                    <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>
-                                    <td>
-                                        <select style="border: none; outline: none" name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
-                                            @foreach($drivers as $driver)
-                                                <option value="{{ $driver->id }}" {{ old("orders.$i.driver_id") == $driver->id ? 'selected' : '' }}>
-                                                    {{ $driver->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select style="border: none; outline: none" name="orders[{{ $i }}][payment_type]" class="form-control payment-type">
-                                            <option value="naqt" {{ old("orders.$i.payment_type") == 'naqt' ? 'selected' : '' }}>Naqd</option>
-                                            <option value="karta" {{ old("orders.$i.payment_type") == 'karta' ? 'selected' : '' }}>Karta</option>
-                                            <option value="transfer" {{ old("orders.$i.payment_type") == 'transfer' ? 'selected' : '' }}>Bank orqali</option>
-                                        </select>
-                                    </td>
-                                    <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none" type="text" class="form-control total-sum" readonly value="{{ old("orders.$i.total_sum") }}"></td>
-                                </tr>
-                            @endfor
-                            </tbody>
-                        </table>
-                    </div>
-                    <button type="submit" class="btn btn-success mt-3">Buyurtmalarni Saqlash</button>
-                </form>
-            </div>
-                @else
-                    <div class="alert alert-warning">
-                        Ovqat mavjud emas
-                            <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Qo'shish </a>
-
+                        {{--                        <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
                     </div>
                 @endif
+            </div>
+
+            @if($dailyMeals->isNotEmpty())
+                <div class="card-header">
+                    <form method="POST" action="{{ route('admin.orders.store') }}">
+                        @csrf
+                        <input type="hidden" name="order_date" value="{{ request('order_date', now()->format('Y-m-d')) }}">
+                        <div class="table-responsive mt-3" >
+                            <table class="table table-bordered customTable">
+                                <thead>
+                                <tr>
+                                    <th style="width: 47px" class="sortTable"><span style="margin-left: 8px">ID</span></th>
+                                    <th>Mijoz</th>
+                                    <th style="background: #F5F5F7 !important;">Balance</th>
+                                    <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
+                                    @foreach($meals as $index => $meal)
+                                        <th style="color: {{ $colors[$index % count($colors)] }};">
+                                            {{ $meal->name }}
+                                        </th>
+                                    @endforeach
+                                    <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
+                                    <th>Cola</th>
+                                    <th>Dostavka</th>
+                                    <th>Kuryer</th>
+                                    <th>To‘lov</th>
+                                    <th style="background: #F5F5F7 !important;">Jami</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @for ($i = 0; $i < 1; $i++)
+                                    <tr>
+
+                                        <td><span class="row-index">{{ $i + 1 }}</span></td>
+                                        <td>
+                                            <select  style="border: none; outline: none" name="orders[{{ $i }}][customer_id]" class="form-control customer-select select2" required>
+                                                <option value="">Tanlang</option>
+                                                @foreach($customers as $customer)
+                                                    <option value="{{ $customer->id }}"
+                                                            data-phone="{{ $customer->phone }}"
+                                                            data-balance="{{ number_format($customer->balance, 3, '.', ' ') }}"
+                                                        {{ old("orders.$i.customer_id") == $customer->id ? 'selected' : '' }}>
+                                                        {{ $customer->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td style="background: #F5F5F7 !important;">
+                                            <input style="background: #F5F5F7 !important; border: none" type="text" name="orders[{{ $i }}][balance]" class="form-control customer-balance" readonly value="{{ old("orders.$i.balance") }}">
+                                        </td>
+                                        <td>
+                                            <input style="background: #fff !important; border: none" type="text"
+                                                   name="orders[{{ $i }}][phone]"
+                                                   class="customer-phone "
+                                                   readonly
+                                                   value="{{ old("orders.$i.phone") }}"
+                                                   onclick="copyToClipboard(this)">
+                                        </td>
+                                        @foreach($meals as $meal)
+                                            <td>
+                                                <input style="background: #fff !important; border: none"
+                                                       type="number"
+                                                       name="orders[{{ $i }}][meals][{{ $meal->id }}]"
+                                                       class="form-control meal-input @error("orders.$i.meals") is-invalid @enderror"
+                                                       data-price="{{ number_format($meal->price, 3, '.', ' ') }}"
+                                                       min="0"
+                                                       value="{{ old("orders.$i.meals.$meal->id", 0) }}">
+                                            </td>
+                                        @endforeach
+                                        <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none; width: 20px" type="total_meals" class="total-meals" readonly value="{{ old("orders.$i.total_meals") }}"></td>
+                                        <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][cola]" class="form-control cola-input" data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
+                                        <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>
+                                        <td>
+                                            <select style="border: none; outline: none" name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
+                                                @foreach($drivers as $driver)
+                                                    <option value="{{ $driver->id }}" {{ old("orders.$i.driver_id") == $driver->id ? 'selected' : '' }}>
+                                                        {{ $driver->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select style="border: none; outline: none" name="orders[{{ $i }}][payment_type]" class="form-control payment-type">
+                                                <option value="naqt" {{ old("orders.$i.payment_type") == 'naqt' ? 'selected' : '' }}>Naqd</option>
+                                                <option value="karta" {{ old("orders.$i.payment_type") == 'karta' ? 'selected' : '' }}>Karta</option>
+                                                <option value="transfer" {{ old("orders.$i.payment_type") == 'transfer' ? 'selected' : '' }}>Bank orqali</option>
+                                            </select>
+                                        </td>
+                                        <td style="background: #F5F5F7 !important;"><input style="background: #F5F5F7 !important; border: none" type="text" class="form-control total-sum" readonly value="{{ old("orders.$i.total_sum") }}"></td>
+                                    </tr>
+                                @endfor
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-3">Buyurtmalarni Saqlash</button>
+                    </form>
+                </div>
+            @else
+                <div class="alert alert-warning">
+                    Ovqat mavjud emas
+                    <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Qo'shish </a>
+
+                </div>
+            @endif
         </div>
     </div>
     <div class="col-19 col-md-19 col-lg-19">
 
-{{--        <form method="GET" class="form-inline mt-5 mb-3">--}}
-{{--            <div class="form-group">--}}
-{{--                <label for="order_date_search" class="mr-2">Sana bo‘yicha qidirish:</label>--}}
-{{--                <input type="date" id="order_date_search" name="order_date" class="form-control mr-2" value="{{ request('order_date', now()->format('Y-m-d')) }}">--}}
-{{--                <button type="submit" class="btn btn-primary">Qidirish</button>--}}
-{{--            </div>--}}
-{{--        </form>--}}
+        {{--        <form method="GET" class="form-inline mt-5 mb-3">--}}
+        {{--            <div class="form-group">--}}
+        {{--                <label for="order_date_search" class="mr-2">Sana bo‘yicha qidirish:</label>--}}
+        {{--                <input type="date" id="order_date_search" name="order_date" class="form-control mr-2" value="{{ request('order_date', now()->format('Y-m-d')) }}">--}}
+        {{--                <button type="submit" class="btn btn-primary">Qidirish</button>--}}
+        {{--            </div>--}}
+        {{--        </form>--}}
 
     </div>
     @if(isset($latestOrders) && count($latestOrders) > 0)
-            <div class="card mt-2">
-                <div class="card-header">
-                    <h5>So‘nggi Buyurtmalar</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0 customTable">
-                        <thead>
-                        <tr>
-                            <th style="width: 47px" class="sortTable"><span style="margin-left: 8px">ID</span></th>
-                            <th>№</th>
-                            <th>Mijoz</th>
-                            <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
-                            <th style="background: #F5F5F7 !important;">Balance</th>
-                            @php
-                                $colors = ['#4B4DFF', '#00A452', '#E40089', '#ED0000'];
-                            @endphp
-
-                            @foreach($meals as $index => $meal)
-                                <th style="color: {{ $colors[$index % count($colors)] }};">{{ $meal->name }}</th>
-                            @endforeach
-                            <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
-                            <th>Cola</th>
-                            <th>Dostavka</th>
-                            <th>Kuryer</th>
-                            <th>To‘lov</th>
-                            <th style="background: #F5F5F7 !important;">Jami</th>
-                            <th>Olindi</th>
-                            <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($latestOrders as $order)
-                            <tr>
-                                <td class="sortTable"><span style="margin-left: 8px">{{ $order->id }}</span></td>
-                                <td>{{ $order->daily_order_number }}</td>
-                                <td>
-                                    @if(isset($order->customer) && $order->customer->type === 'oylik')
-                                        <span style="color: blue;">{{ $order->customer->name }}</span>
-                                    @else
-                                        {{ $order->customer->name ?? '-' }}
-                                    @endif
-                                </td>
-                                <td style="background: #F5F5F7 !important" onclick="copyToClipboard('{{ $order->customer->phone }}')">
-                                    @if ($order->customer && $order->customer->phone)
-                                        <a href="tel:{{ $order->customer->phone }}" style="text-decoration: none; color: inherit; margin-left: 3px">
-                                            <img src="{{asset('/img/eye.svg')}}"
-                                        </a>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-
-
-                                <td style="background: #F5F5F7 !important;" class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
-                                    {{ $order->customer->balance }}
-                                </td>
-                                @php $totalMeals = 0; @endphp
-                                @foreach($meals as $meal)
-                                    @php
-                                        $mealQty = 0;
-                                        if ($order->meal_1_id == $meal->id) $mealQty = $order->meal_1_quantity;
-                                        if ($order->meal_2_id == $meal->id) $mealQty = $order->meal_2_quantity;
-                                        if ($order->meal_3_id == $meal->id) $mealQty = $order->meal_3_quantity;
-                                        if ($order->meal_4_id == $meal->id) $mealQty = $order->meal_4_quantity;
-                                        $totalMeals += $mealQty;
-                                    @endphp
-                                    <td>{{ $mealQty > 0 ? $mealQty : '-' }}</td>
-                                @endforeach
-                                <td style="background: #F5F5F7 !important;"><strong style="margin-left: 3px">{{ $totalMeals }}</strong></td>
-                                <td>{{ $order->cola_quantity }}</td>
-                                <td>{{ number_format($order->delivery_fee, 0, ',', ' ') }} </td>
-                                <td>{{ $order->driver->name ?? '-' }}</td>
-                                <td>
-                                    {{ ucfirst($order->payment_method) }}
-                                    @if ($order->payment_method === 'naqt')
-                                        <img src="{{ asset('/img/zam-zam-cash.svg') }}" alt="Nax" width="20">
-                                    @elseif ($order->payment_method === 'karta')
-                                        <img src="{{ asset('/img/card.svg') }}" alt="Card" width="20">
-                                    @endif
-                                </td>
-                                <td style="background: #F5F5F7 !important;"><strong>{{ number_format($order->total_amount, 0, ',', ' ') }} </strong></td>
-                                <td>
-                                    <div class="received-amount-wrapper">
-                                        <!-- Display mode -->
-                                        <strong class="received-amount-display" style="color: {{ $order->received_amount < $order->total_amount ? 'red' : 'green' }}">
-                                            {{ number_format($order->received_amount, 0, ',', ' ') }} so‘m
-                                        </strong>
-
-                                        <!-- Edit mode -->
-                                        <div class="received-amount-edit d-none">
-                                            <input type="number" class="received-amount-input form-control" value="{{ $order->received_amount }}" style="width: 120px; display: inline-block;">
-                                            <button class="btn btn-sm btn-success save-received-amount" data-order-id="{{ $order->id }}">
-                                                <i class="fa fa-check"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="edit-received-amount" style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                </div>
+        <div class="card mt-2">
+            <div class="card-header">
+                <h5>So‘nggi Buyurtmalar</h5>
             </div>
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0 customTable">
+                    <thead>
+                    <tr>
+                        <th style="width: 47px" class="sortTable"><span style="margin-left: 8px">ID</span></th>
+                        <th>№</th>
+                        <th>Mijoz</th>
+                        <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
+                        <th style="background: #F5F5F7 !important;">Balance</th>
+                        @php
+                            $colors = ['#4B4DFF', '#00A452', '#E40089', '#ED0000'];
+                        @endphp
+
+                        @foreach($meals as $index => $meal)
+                            <th style="color: {{ $colors[$index % count($colors)] }};">{{ $meal->name }}</th>
+                        @endforeach
+                        <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
+                        <th>Cola</th>
+                        <th>Dostavka</th>
+                        <th>Kuryer</th>
+                        <th>To‘lov</th>
+                        <th style="background: #F5F5F7 !important;">Jami</th>
+                        <th>Olindi</th>
+                        <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($latestOrders as $order)
+                        <tr>
+                            <td class="sortTable"><span style="margin-left: 8px">{{ $order->id }}</span></td>
+                            <td>{{ $order->daily_order_number }}</td>
+                            <td>
+                                @if(isset($order->customer) && $order->customer->type === 'oylik')
+                                    <span style="color: blue;">{{ $order->customer->name }}</span>
+                                @else
+                                    {{ $order->customer->name ?? '-' }}
+                                @endif
+                            </td>
+                            <td style="background: #F5F5F7 !important; position: relative;" onclick="showPhoneTooltip(this, '{{ $order->customer->phone ?? '' }}')">
+                                @if ($order->customer && $order->customer->phone)
+                                    <img src="{{ asset('/img/call-hospital.svg') }}" alt="Call" style="cursor: pointer;">
+                                @else
+                                    -
+                                @endif
+                            </td>
+
+
+                            <td style="background: #F5F5F7 !important;" class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
+                                {{ $order->customer->balance }}
+                            </td>
+                            @php $totalMeals = 0; @endphp
+                            @foreach($meals as $meal)
+                                @php
+                                    $mealQty = 0;
+                                    if ($order->meal_1_id == $meal->id) $mealQty = $order->meal_1_quantity;
+                                    if ($order->meal_2_id == $meal->id) $mealQty = $order->meal_2_quantity;
+                                    if ($order->meal_3_id == $meal->id) $mealQty = $order->meal_3_quantity;
+                                    if ($order->meal_4_id == $meal->id) $mealQty = $order->meal_4_quantity;
+                                    $totalMeals += $mealQty;
+                                @endphp
+                                <td>{{ $mealQty > 0 ? $mealQty : '-' }}</td>
+                            @endforeach
+                            <td style="background: #F5F5F7 !important;"><strong style="margin-left: 3px">{{ $totalMeals }}</strong></td>
+                            <td>{{ $order->cola_quantity }}</td>
+                            <td>{{ number_format($order->delivery_fee, 0, ',', ' ') }} </td>
+                            <td>{{ $order->driver->name ?? '-' }}</td>
+                            <td>
+                                {{ ucfirst($order->payment_method) }}
+                                @if ($order->payment_method === 'naqt')
+                                    <img src="{{ asset('/img/zam-zam-cash.svg') }}" alt="Nax" width="20">
+                                @elseif ($order->payment_method === 'karta')
+                                    <img src="{{ asset('/img/card.svg') }}" alt="Card" width="20">
+                                @endif
+                            </td>
+                            <td style="background: #F5F5F7 !important;"><strong>{{ number_format($order->total_amount, 0, ',', ' ') }} </strong></td>
+                            <td>
+                                <div class="received-amount-wrapper">
+                                    <!-- Display mode -->
+                                    <strong class="received-amount-display"
+                                            style="color: {{ $order->received_amount < $order->total_amount ? 'red' : 'green' }}">
+                                        {{ number_format($order->received_amount, 0, ',', ' ') }} so‘m
+                                    </strong>
+
+                                    <!-- Edit mode -->
+                                    <div class="received-amount-edit d-none">
+                                        <input type="number" class="received-amount-input form-control" value="{{ $order->received_amount }}"
+                                               style="width: 120px; display: inline-block;">
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="edit-received-amount" style="width: 56px">
+                                <img src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;">
+                            </td>
+
+                            <td>
+                                <div class="received-amount-edit d-none">
+                                    <button class="btn btn-sm btn-success save-received-amount" data-order-id="{{ $order->id }}">
+                                        <i class="fa fa-check"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
         @endif
-    </div>
+        </div>
 
-@endsection
+        @endsection
 
-@section('js')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $('.select2').select2();
+        @section('js')
+            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+            <script>
+                $('.select2').select2();
 
-        function parseNumber(value) {
-            if (!value) return 0;
-            // remove spaces and commas, convert to float
-            return parseFloat(value.toString().replace(/[\s,]/g, '')) || 0;
-        }
+                function parseNumber(value) {
+                    if (!value) return 0;
+                    // remove spaces and commas, convert to float
+                    return parseFloat(value.toString().replace(/[\s,]/g, '')) || 0;
+                }
 
-        function updateRowCalculations(row) {
-            let totalMeals = 0;
-            let totalSum = 0;
+                function updateRowCalculations(row) {
+                    let totalMeals = 0;
+                    let totalSum = 0;
 
-            // Hisob ovqatlar uchun
-            row.querySelectorAll(".meal-input").forEach(input => {
-                const count = parseNumber(input.value);
-                const price = parseNumber(input.dataset.price);
-                totalMeals += count;
-                totalSum += count * price;
-            });
+                    // Hisob ovqatlar uchun
+                    row.querySelectorAll(".meal-input").forEach(input => {
+                        const count = parseNumber(input.value);
+                        const price = parseNumber(input.dataset.price);
+                        totalMeals += count;
+                        totalSum += count * price;
+                    });
 
-            // Cola hisoblash
-            const colaInput = row.querySelector(".cola-input");
-            const colaCount = parseNumber(colaInput.value);
-            const colaPrice = parseNumber(colaInput.dataset.price);
-            totalSum += colaCount * colaPrice;
+                    // Cola hisoblash
+                    const colaInput = row.querySelector(".cola-input");
+                    const colaCount = parseNumber(colaInput.value);
+                    const colaPrice = parseNumber(colaInput.dataset.price);
+                    totalSum += colaCount * colaPrice;
 
-            // Yetkazib berish narxi
-            const deliveryInput = row.querySelector(".delivery-input");
-            if (!deliveryInput.classList.contains('manual-edit')) {
-                deliveryInput.value = totalMeals > 8 ? 0 : 20000;
-            }
-            totalSum += parseNumber(deliveryInput.value);
+                    // Yetkazib berish narxi
+                    const deliveryInput = row.querySelector(".delivery-input");
+                    if (!deliveryInput.classList.contains('manual-edit')) {
+                        deliveryInput.value = totalMeals > 8 ? 0 : 20000;
+                    }
+                    totalSum += parseNumber(deliveryInput.value);
 
-            // Natijalarni chiqarish
-            row.querySelector(".total-meals").value = totalMeals;
+                    // Natijalarni chiqarish
+                    row.querySelector(".total-meals").value = totalMeals;
 
-            // Tozalangan formatda ko‘rsatish (masalan: 275000 → 275 000)
-            row.querySelector(".total-sum").value = totalSum.toLocaleString('ru-RU');
-        }
+                    // Tozalangan formatda ko‘rsatish (masalan: 275000 → 275 000)
+                    row.querySelector(".total-sum").value = totalSum.toLocaleString('ru-RU');
+                }
 
-        // Har bir inputda hisobni yangilash
-        document.addEventListener("input", function () {
-            document.querySelectorAll("tbody tr").forEach(function (row) {
-                updateRowCalculations(row);
-            });
-        });
-
-        // Select o‘zgarganda malumotlarni yuklash va hisoblash
-        $(document).on('change', '.customer-select', function () {
-            const row = $(this).closest('tr');
-            const selectedOption = $(this).find('option:selected');
-            const phone = selectedOption.data('phone');
-            const balance = selectedOption.data('balance');
-
-            row.find('.customer-phone').val(phone);
-            row.find('.customer-balance').val(balance);
-
-            updateRowCalculations(row[0]);
-        });
-
-        // Yetkazib berish qiymati qo‘lda tahrir qilinganda
-        document.querySelectorAll('.editable-delivery').forEach(input => {
-            input.addEventListener('input', function () {
-                input.classList.add('manual-edit');
-                const row = input.closest('tr');
-                updateRowCalculations(row);
-            });
-        });
-    </script>
-    <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                console.log('Copied to clipboard: ' + text);
-            }).catch(function(err) {
-                console.error('Failed to copy text: ', err);
-            });
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".edit-received-amount").forEach(function (editBtn) {
-                editBtn.addEventListener("click", function () {
-                    const wrapper = this.closest("tr").querySelector(".received-amount-wrapper");
-                    const display = wrapper.querySelector(".received-amount-display");
-                    const editDiv = wrapper.querySelector(".received-amount-edit");
-
-                    display.classList.add("d-none");
-                    editDiv.classList.remove("d-none");
+                // Har bir inputda hisobni yangilash
+                document.addEventListener("input", function () {
+                    document.querySelectorAll("tbody tr").forEach(function (row) {
+                        updateRowCalculations(row);
+                    });
                 });
-            });
 
-            document.querySelectorAll(".save-received-amount").forEach(function (saveBtn) {
-                saveBtn.addEventListener("click", function () {
-                    const orderId = this.getAttribute("data-order-id");
-                    const wrapper = this.closest(".received-amount-wrapper");
-                    const input = wrapper.querySelector(".received-amount-input");
-                    const display = wrapper.querySelector(".received-amount-display");
-                    const editDiv = wrapper.querySelector(".received-amount-edit");
+                // Select o‘zgarganda malumotlarni yuklash va hisoblash
+                $(document).on('change', '.customer-select', function () {
+                    const row = $(this).closest('tr');
+                    const selectedOption = $(this).find('option:selected');
+                    const phone = selectedOption.data('phone');
+                    const balance = selectedOption.data('balance');
 
-                    const newValue = parseInt(input.value) || 0;
+                    row.find('.customer-phone').val(phone);
+                    row.find('.customer-balance').val(balance);
 
-                    // AJAX orqali serverga yuborish
-                    fetch(`/admin/orders/${orderId}/update-received-amount`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({ received_amount: newValue })
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                display.textContent = newValue.toLocaleString('uz-UZ') + " so‘m";
-                                display.style.color = (newValue < data.total_amount) ? "red" : "green";
-
-                                editDiv.classList.add("d-none");
-                                display.classList.remove("d-none");
-                            } else {
-                                alert("Xatolik yuz berdi: " + data.message);
-                            }
-                        });
+                    updateRowCalculations(row[0]);
                 });
-            });
-        });
-    </script>
 
+                // Yetkazib berish qiymati qo‘lda tahrir qilinganda
+                document.querySelectorAll('.editable-delivery').forEach(input => {
+                    input.addEventListener('input', function () {
+                        input.classList.add('manual-edit');
+                        const row = input.closest('tr');
+                        updateRowCalculations(row);
+                    });
+                });
+            </script>
 
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const rows = document.querySelectorAll("tr");
 
-@endsection
+                    rows.forEach(row => {
+                        const pencilIcon = row.querySelector(".edit-received-amount img");
+                        const displayAmount = row.querySelector(".received-amount-display");
+                        const editAmount = row.querySelectorAll(".received-amount-edit");
+
+                        if (pencilIcon) {
+                            pencilIcon.addEventListener("click", function () {
+                                displayAmount.classList.add("d-none");
+                                editAmount.forEach(el => el.classList.remove("d-none"));
+                            });
+                        }
+
+                        const saveBtn = row.querySelector(".save-received-amount");
+                        const input = row.querySelector(".received-amount-input");
+
+                        if (saveBtn) {
+                            saveBtn.addEventListener("click", function () {
+                                const orderId = this.dataset.orderId;
+                                const newAmount = input.value;
+
+                                fetch(`/admin/orders/${orderId}/update-received-amount`, {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                                    },
+                                    body: JSON.stringify({ received_amount: newAmount })
+                                })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            displayAmount.textContent = `${parseInt(newAmount).toLocaleString('ru-RU')} so‘m`;
+                                            displayAmount.style.color = parseInt(newAmount) < data.total_amount ? 'red' : 'green';
+                                            displayAmount.classList.remove("d-none");
+                                            editAmount.forEach(el => el.classList.add("d-none"));
+                                        } else {
+                                            alert("Xatolik yuz berdi.");
+                                        }
+                                    })
+                                    .catch(() => alert("Server bilan ulanishda xatolik."));
+                            });
+                        }
+                    });
+                });
+            </script>
+            <script>
+                function showPhoneTooltip(tdElement, phoneNumber) {
+                    // Avvalgi tooltipni tozalash
+                    const existingTooltip = tdElement.querySelector('.phone-tooltip');
+                    if (existingTooltip) {
+                        existingTooltip.remove();
+                    }
+
+                    if (!phoneNumber) return;
+
+                    // Tooltip yaratish
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'phone-tooltip';
+                    tooltip.textContent = phoneNumber;
+
+                    // Tooltipni style qilish
+                    tooltip.style.position = 'absolute';
+                    tooltip.style.top = '50%';
+                    tooltip.style.width = '160px';
+                    tooltip.style.left = '50%';
+                    tooltip.style.transform = 'translate(-50%, -50%)';
+                    tooltip.style.backgroundColor = '#fff';
+                    tooltip.style.border = '1px solid #ccc';
+                    tooltip.style.padding = '6px 10px';
+                    tooltip.style.borderRadius = '5px';
+                    tooltip.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+                    tooltip.style.zIndex = '1000';
+
+                    tdElement.appendChild(tooltip);
+
+                    // 15 soniyadan keyin yo'q qilish
+                    setTimeout(() => {
+                        tooltip.remove();
+                    }, 15000);
+                }
+            </script>
+        @endsection

@@ -36,11 +36,11 @@
         <div class="col-4">
             <div class="card mb-0">
                 <div class="card-body">
-                    <ul class="nav nav-pills">
+                    <ul class="nav nav-pills" style="display: flex; gap: 10px">
                         <li class="nav-item">
                             <a class="nav-link active " href="{{ route('admin.customers.edit',$customer->id) }}">Anketa <span class="badge badge-white"></span></a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" >
                             <a class="nav-link " href="{{ route('admin.customers.show',$customer->id) }}">Buyurtmalar <span class="badge badge-primary"></span></a>
                         </li>
 
@@ -49,7 +49,7 @@
             </div>
         </div>
     </div>
-    <form action="{{ route('admin.customers.update', $customer->id) }}" method="POST">
+    <form action="{{ route('admin.customers.update', $customer->id) }}" method="POST" style="margin-top: 16px">
         @csrf
         @method('PUT')
 
@@ -130,11 +130,11 @@
                         </div>
                         <div class="form-group">
                             <label>Balans (jami)</label>
-                            <input type="text" readonly class="form-control" value="{{ number_format($customer->balance, 3, '.', ' ') }}">
+                            <input type="text" readonly class="form-control" value="{{ number_format($customer->balance, 0, '.', ' ') }}">
                         </div>
                         <div class="form-group">
                             <label>Balans to'ldirish</label>
-                            <input type="text" name="balance" class="form-control" value="0.00">
+                            <input type="text" name="balance" class="form-control" placeholder="0">
                             <a href="{{ route('admin.cusomers.histories', $customer->id) }}" class="icon-btn">
                                 Balans toldirish tarixi
                             </a>

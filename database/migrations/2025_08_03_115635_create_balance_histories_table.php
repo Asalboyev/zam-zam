@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('balance_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained();
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 12, 0);
             $table->enum('type', ['payment', 'order', 'correction']);
             $table->text('description')->nullable();
             $table->timestamps();

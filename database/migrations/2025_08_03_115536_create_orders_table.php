@@ -42,10 +42,10 @@ return new class extends Migration
 
             // To‘lov
             $table->enum('payment_method', ['naqt', 'karta', 'transfer'])->default('naqt');
-            $table->decimal('total_amount', 12, 3);
+            $table->decimal('total_amount', 12, 0);
 
             // ✅ Mijozdan olingan haqiqiy summa
-            $table->decimal('received_amount', 12, 3)->default(0);
+            $table->decimal('received_amount', 12, 0)->default(0);
 
             // Status
             $table->enum('status', ['new', 'preparing', 'delivered', 'cancelled'])->default('new');

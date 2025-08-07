@@ -185,6 +185,7 @@
                             <th style="background: #F5F5F7 !important;">Jami</th>
                             <th>Olindi</th>
                             <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
+                            <th></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -199,11 +200,9 @@
                                         {{ $order->customer->name ?? '-' }}
                                     @endif
                                 </td>
-                                <td style="background: #F5F5F7 !important" onclick="copyToClipboard('{{ $order->customer->phone }}')">
+                                <td style="background: #F5F5F7 !important; position: relative;" onclick="showPhoneTooltip(this, '{{ $order->customer->phone ?? '' }}')">
                                     @if ($order->customer && $order->customer->phone)
-                                        <a href="tel:{{ $order->customer->phone }}" style="text-decoration: none; color: inherit; margin-left: 3px">
-                                            <img src="{{asset('/img/eye.svg')}}"
-                                        </a>
+                                        <img src="{{ asset('/img/call-hospital.svg') }}" alt="Call" style="cursor: pointer;">
                                     @else
                                         -
                                     @endif
@@ -242,21 +241,29 @@
                                 <td>
                                     <div class="received-amount-wrapper">
                                         <!-- Display mode -->
-                                        <strong class="received-amount-display" style="color: {{ $order->received_amount < $order->total_amount ? 'red' : 'green' }}">
+                                        <strong class="received-amount-display"
+                                                style="color: {{ $order->received_amount < $order->total_amount ? 'red' : 'green' }}">
                                             {{ number_format($order->received_amount, 0, ',', ' ') }} so‘m
                                         </strong>
 
-                                        <!-- Edit mode -->
                                         <div class="received-amount-edit d-none">
-                                            <input type="number" class="received-amount-input form-control" value="{{ $order->received_amount }}" style="width: 120px; display: inline-block;">
-                                            <button class="btn btn-sm btn-success save-received-amount" data-order-id="{{ $order->id }}">
-                                                <i class="fa fa-check"></i>
-                                            </button>
+                                            <input type="number" class="received-amount-input form-control" value="{{ $order->received_amount }}"
+                                                   style="width: 120px; display: inline-block;">
                                         </div>
                                     </div>
                                 </td>
-                                <td class="edit-received-amount" style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></td>
 
+                                <td class="edit-received-amount" style="width: 56px">
+                                    <img src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;">
+                                </td>
+
+                                <td>
+                                    <div class="received-amount-edit d-none">
+                                        <button class="btn btn-sm btn-success save-received-amount" data-order-id="{{ $order->id }}">
+                                            <i class="fa fa-check"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -337,74 +344,90 @@
         });
     </script>
     <script>
-        function copyToClipboard(element) {
-            const text = element.innerText.trim();
-            if (text === '-') return;
-
-            // Temporary input yaratamiz
-            const tempInput = document.createElement("input");
-            tempInput.value = text;
-            document.body.appendChild(tempInput);
-
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999); // mobile compatibility
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-
-            // Optional: qisqa feedback berish
-            element.style.backgroundColor = "#d4edda"; // yashil fon
-            setTimeout(() => {
-                element.style.backgroundColor = ""; // eski holatga qaytarish
-            }, 500);
-        }
-    </script>
-    <script>
         document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".edit-received-amount").forEach(function (editBtn) {
-                editBtn.addEventListener("click", function () {
-                    const wrapper = this.closest("tr").querySelector(".received-amount-wrapper");
-                    const display = wrapper.querySelector(".received-amount-display");
-                    const editDiv = wrapper.querySelector(".received-amount-edit");
+            const rows = document.querySelectorAll("tr");
 
-                    display.classList.add("d-none");
-                    editDiv.classList.remove("d-none");
-                });
-            });
+            rows.forEach(row => {
+                const pencilIcon = row.querySelector(".edit-received-amount img");
+                const displayAmount = row.querySelector(".received-amount-display");
+                const editAmount = row.querySelectorAll(".received-amount-edit");
 
-            document.querySelectorAll(".save-received-amount").forEach(function (saveBtn) {
-                saveBtn.addEventListener("click", function () {
-                    const orderId = this.getAttribute("data-order-id");
-                    const wrapper = this.closest(".received-amount-wrapper");
-                    const input = wrapper.querySelector(".received-amount-input");
-                    const display = wrapper.querySelector(".received-amount-display");
-                    const editDiv = wrapper.querySelector(".received-amount-edit");
+                if (pencilIcon) {
+                    pencilIcon.addEventListener("click", function () {
+                        displayAmount.classList.add("d-none");
+                        editAmount.forEach(el => el.classList.remove("d-none"));
+                    });
+                }
 
-                    const newValue = parseInt(input.value) || 0;
+                const saveBtn = row.querySelector(".save-received-amount");
+                const input = row.querySelector(".received-amount-input");
 
-                    // AJAX orqali serverga yuborish
-                    fetch(`/admin/orders/${orderId}/update-received-amount`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({ received_amount: newValue })
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                display.textContent = newValue.toLocaleString('uz-UZ') + " so‘m";
-                                display.style.color = (newValue < data.total_amount) ? "red" : "green";
+                if (saveBtn) {
+                    saveBtn.addEventListener("click", function () {
+                        const orderId = this.dataset.orderId;
+                        const newAmount = input.value;
 
-                                editDiv.classList.add("d-none");
-                                display.classList.remove("d-none");
-                            } else {
-                                alert("Xatolik yuz berdi: " + data.message);
-                            }
-                        });
-                });
+                        fetch(`/admin/orders/${orderId}/update-received-amount`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({ received_amount: newAmount })
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    displayAmount.textContent = `${parseInt(newAmount).toLocaleString('ru-RU')} so‘m`;
+                                    displayAmount.style.color = parseInt(newAmount) < data.total_amount ? 'red' : 'green';
+                                    displayAmount.classList.remove("d-none");
+                                    editAmount.forEach(el => el.classList.add("d-none"));
+                                } else {
+                                    alert("Xatolik yuz berdi.");
+                                }
+                            })
+                            .catch(() => alert("Server bilan ulanishda xatolik."));
+                    });
+                }
             });
         });
+    </script>
+
+    <script>
+        function showPhoneTooltip(tdElement, phoneNumber) {
+            // Avvalgi tooltipni tozalash
+            const existingTooltip = tdElement.querySelector('.phone-tooltip');
+            if (existingTooltip) {
+                existingTooltip.remove();
+            }
+
+            if (!phoneNumber) return;
+
+            // Tooltip yaratish
+            const tooltip = document.createElement('div');
+            tooltip.className = 'phone-tooltip';
+            tooltip.textContent = phoneNumber;
+
+            // Tooltipni style qilish
+            tooltip.style.position = 'absolute';
+            tooltip.style.top = '50%';
+            tooltip.style.width = '160px';
+            tooltip.style.left = '50%';
+            tooltip.style.transform = 'translate(-50%, -50%)';
+            tooltip.style.backgroundColor = '#fff';
+            tooltip.style.border = '1px solid #ccc';
+            tooltip.style.padding = '6px 10px';
+            tooltip.style.borderRadius = '5px';
+            tooltip.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+            tooltip.style.zIndex = '1000';
+
+            tdElement.appendChild(tooltip);
+
+            // 15 soniyadan keyin yo'q qilish
+            setTimeout(() => {
+                tooltip.remove();
+            }, 15000);
+        }
     </script>
 
 
