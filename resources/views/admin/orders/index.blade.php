@@ -244,7 +244,7 @@
                                         <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][cola]" class="form-control cola-input" data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
                                         <td><input style="background: #fff !important; border: none" type="number" name="orders[{{ $i }}][delivery]" class="form-control delivery-input editable-delivery" value="{{ old("orders.$i.delivery", 20000) }}"></td>
                                         <td>
-                                            <select style="border: none; outline: none" name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
+                                            <select style="border: none; outline: none"  required name="orders[{{ $i }}][driver_id]" class="form-control driver-select select2">
                                                 @foreach($drivers as $driver)
                                                     <option value="{{ $driver->id }}" {{ old("orders.$i.driver_id") == $driver->id ? 'selected' : '' }}>
                                                         {{ $driver->name }}
@@ -562,7 +562,7 @@
                     // 15 soniyadan keyin yo'q qilish
                     setTimeout(() => {
                         tooltip.remove();
-                    }, 15000);
+                    }, 5000);
                 }
             </script>
         @endsection
