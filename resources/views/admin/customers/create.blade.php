@@ -83,38 +83,42 @@
 
                         <div class="form-group">
                             <label>Tuman</label>
-                            <input type="text" name="address" class="form-control" required="">
+                            <select name="region_id" class="form-control select2" required>
+                                <option value="">-- Tumanni tanlang --</option>
+                                @foreach($regions as $region)
+                                    <option value="{{ $region->id }}">{{ $region->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Manzil</label>
                             <input type="text" name="district" class="form-control" required="">
                         </div>
                     </div>
-{{--                    <div class="card-footer text-right">--}}
-{{--                        <button class="btn btn-primary">Submit</button>--}}
-{{--                    </div>--}}
+
             </div>
     </div>
     <div class="col-10 col-md-4 col-lg-4">
-            <div class="card">
-
-                    <div class="card-header">
-                        <h4>Oylik turi</h4>
-                    </div>
-                    <div class="card-body">
-                            <div class="form-group status-group">
-                                <label>Turini tanlang</label>
-                                <select class="form-control " name="type" required>
-                                    <option value="oylik">Oylik mijoz</option>
-                                    <option value="odiy">Odiy</option>
-                                </select>
-                            </div>
-                        <div class="form-group">
-                            <label>Balans</label>
-                            <input type="text"  name="balance" class="form-control" required="">
-                        </div>
-                    </div>
+        <div class="card">
+            <div class="card-header">
+                <h4>Oylik turi</h4>
             </div>
+            <div class="card-body">
+                <div class="form-group status-group">
+                    <label>Turini tanlang</label>
+                    <select class="form-control" name="type" id="type-select" required>
+                        <option value="oylik">Oylik mijoz</option>
+                        <option value="odiy">Odiy</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="balance-group">
+                    <label>Balans</label>
+                    <input type="text" name="balance" class="form-control" >
+                </div>
+            </div>
+        </div>
+
     </div>
     </div>
         <div class="text-center">
@@ -123,6 +127,24 @@
         <form>
 @endsection
 @section('js')
+                <script>
+                    const selectElement = document.getElementById('type-select');
+                    const balanceGroup = document.getElementById('balance-group');
+
+                    function toggleBalanceInput() {
+                        if (selectElement.value === 'oylik') {
+                            balanceGroup.style.display = 'block';
+                        } else {
+                            balanceGroup.style.display = 'none';
+                        }
+                    }
+
+                    // Boshlang‘ich holat
+                    toggleBalanceInput();
+
+                    // O'zgarishda ishga tushadi
+                    selectElement.addEventListener('change', toggleBalanceInput);
+                </script>
     <script src="/admin/assets/js/app.min.js"></script>
     <!-- JS Libraies -->
     <script src="/admin/assets/bundles/cleave-js/dist/cleave.min.js"></script>
@@ -186,10 +208,7 @@
                 document.getElementById("map-coords").value = `${lat}, ${lng}`;
             });
         }
-
         window.onload = initMap;
     </script>
-
-
 @endsection
 

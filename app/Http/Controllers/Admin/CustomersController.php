@@ -12,16 +12,32 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\BalanceHistory;
+
 class CustomersController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         $customers = Customer::latest()
             ->paginate(12);
-        return view('admin.customers.index',compact('customers'));
+        return view('admin.customers.index', compact('customers'));
     }
-    public function create(){
-        return view('admin.customers.create');
+
+    public function indebted_customers()
+    {
+        // faqat balance < 0 bo'lgan mijozlarni oling
+        $customers = Customer::where('balance', '<', 0)
+            ->latest()
+            ->paginate(12);
+
+        return view('admin.customers.indebted_customers', compact('customers'));
     }
+
+    public function create()
+    {
+        $regions = \DB::table('regions')->orderBy('name')->get(); // viloyatlar ro‘yxati
+        return view('admin.customers.create', compact('regions'));
+    }
+
     // App\Http\Controllers\CustomerController.php
 
     public function Histories($id)
@@ -30,7 +46,6 @@ class CustomersController extends Controller
 
         return view('admin.customers.histories', compact('customer'));
     }
-
 
 
     public function dashboard()
@@ -67,11 +82,13 @@ class CustomersController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'region_id' => 'required|exists:regions,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'telegram' => 'nullable|string|max:50',
             'status' => 'required|in:Active,Blok',
             'type' => 'required|in:oylik,odiy',
+
 
             'address' => 'nullable|string|max:255',
             'district' => 'nullable|string|max:100',
@@ -87,14 +104,18 @@ class CustomersController extends Controller
             ->with('success', 'Mijoz muvaffaqiyatli qo‘shildi.');
     }
 
-    public function edit(Customer $customer){
-        return view('admin.customers.edit',compact('customer'));
+    public function edit(Customer $customer)
+    {
+        $regions = \DB::table('regions')->orderBy('name')->get(); // viloyatlar ro‘yxati
+
+        return view('admin.customers.edit', compact('customer', 'regions'));
     }
 
     public function update(Request $request, Customer $customer)
     {
         try {
             $validated = $request->validate([
+                'region_id' => 'required|exists:regions,id',
                 'name' => 'required|string|max:255',
                 'phone' => 'nullable|string|max:20',
                 'telegram' => 'nullable|string|max:50',
@@ -160,7 +181,6 @@ class CustomersController extends Controller
         return redirect()->route('admin.customers.index')
             ->with('success', 'Mijoz muvaffaqiyatli o‘chirildi.');
     }
-
 
 
 }

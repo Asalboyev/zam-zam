@@ -27,7 +27,7 @@
 @endsection
 @section('css')
     <link href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
         .responsive-row {
@@ -43,39 +43,38 @@
             flex: 1 1 300px;
         }
 
-        .card-header {
+        .card-header{
             border: 2px solid #DCDCE7 !important;
             border-bottom: none !important;
         }
 
-        .customTable thead tr {
+        .customTable thead tr{
             background-color: #fff !important;
 
         }
 
-        .customTable thead tr th {
+        .customTable thead tr th{
             border: 2px solid #DCDCE7 !important;
             background-color: #fff !important;
 
         }
 
-        .customTable thead tr .sortTable {
+        .customTable thead tr .sortTable{
             font-size: 12px;
             font-weight: 400;
             color: #1C1C29;
         }
 
-        .customTable tbody tr td {
+        .customTable tbody tr td{
             border: 2px solid #DCDCE7 !important;
         }
 
-        .customTable tbody tr .sortTable {
+        .customTable tbody tr .sortTable{
             font-size: 12px;
             font-weight: 400;
             color: #1C1C29;
 
         }
-
         @media screen and (max-width: 768px) {
             .responsive-row {
                 flex-direction: column;
@@ -93,81 +92,41 @@
     </style>
 @endsection
 @section('content')
-    <div class="card p-3 mb-4 border border-primary rounded"
-         style="display: flex; flex-direction: row; justify-content: space-between">
-        <form method="GET" action="{{ route('admin.orders.all') }}">
-            <div class="d-flex align-items-center gap-3">
-                <label for="order_date" class="fw-bold">Buyurtma sanasi:</label>
-                <input type="date" name="order_date" id="order_date" class="form-control w-auto"
-                       value="{{ request('order_date', now()->format('Y-m-d')) }}">
-                <button type="submit" class="btn btn-primary">Tanlash</button>
-            </div>
+    <div class="row">
+        <div class="col-5 mb-3">
+            <div class="card mb-0">
+                <div class="card-body">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link active " href="{{ route('admin.ordinary_debt') }}">Odiy Qarizdorlar  <span class="badge badge-white"></span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link   " href="{{route('admin.monthly_debtors')}}">Oylik Qarizdorlar  <span class="badge badge-primary"></span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link " href="{{ route('admin.indebted_customers') }}">Qarizdor Mijozlar <span class="badge badge-primary"></span></a>
 
-        </form>
-        <div class="row mt-1 " style="display: flex; gap: 60px; margin-right: 40px">
-            <div>
-            </div>
-            <div>
-                @php
-                    $driverSums = [];
-                @endphp
-
-                @foreach($latestOrders as $order)
-                    @if ($order->customer && $order->customer->type === 'odiy' && $order->payment_method === 'naqt')
-                        @php
-                            $customerId = $order->driver->id;
-                            if (!isset($driverSums[$customerId])) {
-                                $driverSums[$customerId] = [
-                                    'name' => $order->driver->name,
-                                    'received' => 0,
-                                ];
-                            }
-//                            $driverSums[$customerId]['received'] += $order->received_amount;
-                            $driverSums[$customerId]['received'] += $order->total_amount;
-                        @endphp
-                    @endif
-                @endforeach
-
-                @foreach($driverSums as $driver)
-                    <div>{{ $driver['name'] }}: {{ number_format($driver['received'], 0, '.', ' ') }} so‘m</div>
-                @endforeach
-            </div>
-
-            <div>
-                <div><strong>Plan:</strong>
-                    Karta: {{ number_format($planByMethod['karta'], 0, '.', ' ') }} |
-                    Naqt: {{ number_format($planByMethod['naqt'], 0, '.', ' ') }}
+                    </ul>
                 </div>
-                <div><strong>Fakt:</strong>
-                    Karta: {{ number_format($factByMethod['karta'], 0, '.', ' ') }} |
-                    Naqt: {{ number_format($factByMethod['naqt'], 0, '.', ' ') }}
-                </div>
-                <div class="mt-3"><strong>Oylik mijozlar umumiy:</strong></div>
-                <div><strong></strong> {{ number_format($oylikPlan, 0, '.', ' ') }} so‘m</div>
-                {{--                <div><strong>Fakt:</strong> {{ number_format($oylikFact, 0, '.', ' ') }} so‘m</div>--}}
-
             </div>
-
         </div>
     </div>
+
     <div class="col-19 col-md-19 col-lg-19">
 
         @if(isset($latestOrders) && count($latestOrders) > 0)
             <div class="card mt-2">
                 <div class="card-header">
-                    <h5>Buyurtmalar </h5>
+                    <h5>Odiy Qarizdorlar  </h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0 customTable">
                         <thead>
                         <tr>
-                            <th style="width: 47px" class="sortTable"><span
-                                    style="margin-left: 8px; opacity: 0.4">ID</span></th>
+                            <th style="width: 47px" class="sortTable"><span style="margin-left: 8px; opacity: 0.4">ID</span></th>
                             <th style="width: 50px">№</th>
                             <th style="width: 100px">Mijoz</th>
-                            <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px"
-                                                                                         src="{{asset('/img/call-hospital.svg')}}">
-                            </th>
+                            <th style="width: 50px; background: #F5F5F7 !important"><img style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
                             <th style="background: #F5F5F7 !important; width: 100px">Balance</th>
                             @php
                                 $colors = ['#4B4DFF', '#00A452', '#E40089', '#ED0000'];
@@ -176,14 +135,14 @@
                             @foreach($meals as $index => $meal)
                                 <th style=" width: 100px;color: {{ $colors[$index % count($colors)] }};">{{ $meal->name }}</th>
                             @endforeach
-                            <th style="background: #F5F5F7 !important; width: 40px"><span
-                                    style="margin-left: 3px">T</span></th>
+                            <th style="background: #F5F5F7 !important; width: 40px"><span style="margin-left: 3px">T</span></th>
                             <th style="width: 100px">Cola</th>
                             <th style="width: 100px">Dostavka</th>
                             <th style="width: 100px">Kuryer</th>
                             <th style="width: 100px">To‘lov</th>
                             <th style="background: #F5F5F7 !important; width: 100px">Jami</th>
                             <th style="width: 50px">Olindi</th>
+                            <th style="width: 50px">data</th>
                             <th></th>
                             <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
 
@@ -192,8 +151,7 @@
                         <tbody>
                         @foreach($latestOrders as $order)
                             <tr>
-                                <td class="sortTable"><span
-                                        style="margin-left: 8px; opacity: 0.4">{{ $order->id }}</span></td>
+                                <td class="sortTable"><span style="margin-left: 8px; opacity: 0.4">{{ $order->id }}</span></td>
                                 <td>{{ $order->daily_order_number }}</td>
                                 <td>
                                     @if(isset($order->customer) && $order->customer->type === 'oylik')
@@ -202,17 +160,14 @@
                                         {{ $order->customer->name ?? '-' }}
                                     @endif
                                 </td>
-                                <td style="background: #F5F5F7 !important; position: relative;"
-                                    onclick="showPhoneTooltip(this, '{{ $order->customer->phone ?? '' }}')">
+                                <td style="background: #F5F5F7 !important; position: relative;" onclick="showPhoneTooltip(this, '{{ $order->customer->phone ?? '' }}')">
                                     @if ($order->customer && $order->customer->phone)
-                                        <img src="{{ asset('/img/call-hospital.svg') }}" alt="Call"
-                                             style="cursor: pointer;">
+                                        <img src="{{ asset('/img/call-hospital.svg') }}" alt="Call" style="cursor: pointer;">
                                     @else
                                         -
                                     @endif
                                 </td>
-                                <td style="background: #F5F5F7 !important;"
-                                    class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
+                                <td style="background: #F5F5F7 !important;" class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
                                     {{ number_format($order->customer->balance, 0, '.', ' ') }}
                                 </td>
 
@@ -228,8 +183,7 @@
                                     @endphp
                                     <td>{{ $mealQty > 0 ? $mealQty : '-' }}</td>
                                 @endforeach
-                                <td style="background: #F5F5F7 !important;"><strong
-                                        style="margin-left: 3px">{{ $totalMeals }}</strong></td>
+                                <td style="background: #F5F5F7 !important;"><strong style="margin-left: 3px">{{ $totalMeals }}</strong></td>
                                 <td>{{ $order->cola_quantity }}</td>
                                 <td>{{ number_format($order->delivery_fee, 0, ',', ' ') }} </td>
                                 <td>{{ $order->driver->name ?? '-' }}</td>
@@ -268,6 +222,9 @@
                                     </div>
                                 </td>
 
+                                <td style="width: 56px">
+                                    {{$order->order_date}}
+                                </td>
 
                                 <td style="width: 56px">
                                     <button
@@ -278,8 +235,7 @@
                                     </button>
                                 </td>
                                 <td class="edit-received-amount" style="width: 56px">
-                                    <a href="{{route('admin.orders.edit',$order->id)}}"><img
-                                            src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;"></a>
+                                    <a href="{{route('admin.orders.edit',$order->id)}}"><img src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;"></a>
                                 </td>
 
                             </tr>
@@ -306,7 +262,7 @@
         });
 
         document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll('.customer-select').forEach(function (selectEl) {
+            document.querySelectorAll('.customer-select').forEach(function(selectEl) {
                 selectEl.addEventListener('change', function () {
                     const lastDriverId = this.options[this.selectedIndex].dataset.lastDriver;
                     const row = this.closest('tr');
@@ -422,7 +378,7 @@
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({received_amount: newAmount})
+                        body: JSON.stringify({ received_amount: newAmount })
                     })
                         .then(res => res.json())
                         .then(data => {

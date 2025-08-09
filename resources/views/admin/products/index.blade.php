@@ -69,6 +69,32 @@
 
     <div class="col-12 col-md-12 col-lg-12">
 
+        <div class="row">
+            <div class="col-5 mb-3">
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{{ route('admin.products.index') }}">Ovqatlar <span class="badge badge-white"></span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link  " href="{{route('admin.customers.index')}}">Mijoz <span class="badge badge-primary"></span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link " href="{{ route('admin.regions.index') }}">Tuman <span class="badge badge-primary"></span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link " href="{{ route('admin.drivers.index') }}">Kuryerlar <span class="badge badge-primary"></span></a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link " href="{{route('admin.dashboard')}}">Kassa <span class="badge badge-primary"></span></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="card">
 
             @if (session('success'))

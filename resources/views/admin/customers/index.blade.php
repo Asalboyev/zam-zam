@@ -69,6 +69,34 @@
 
 <div class="col-12 col-md-12 col-lg-12">
 
+    <div class="row">
+        <div class="col-5 mb-3">
+            <div class="card mb-0">
+                <div class="card-body">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('admin.products.index') }}">Ovqatlar <span class="badge badge-white"></span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active " href="{{route('admin.customers.index')}}">Mijoz <span class="badge badge-primary"></span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link " href="{{ route('admin.regions.index') }}">Tuman <span class="badge badge-primary"></span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link " href="{{ route('admin.drivers.index') }}">Kuryerlar <span class="badge badge-primary"></span></a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link " href="{{route('admin.dashboard')}}">Kassa <span class="badge badge-primary"></span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="card">
 
         @if (session('success'))
@@ -134,10 +162,12 @@
                                 <td> {{$iteam->phone}}</td>
                                 <td> {{$iteam->type}}   </td>
                                 <td> {{$iteam->status}}   </td>
-                                <td class="{{ $iteam->balance < 0 ? 'text-danger' : '' }}">{{ number_format($iteam->balance, 2, '.', ' ') }}  so'm</td>
+                                <td class="{{ $iteam->balance < 0 ? 'text-danger' : '' }}">{{ number_format($iteam->balance, 0, '.', ' ') }} </td>
 
                                 <td>{{$iteam->telegram}}</td>
-                                <td>{{$iteam->address}}</td>
+                                <td>{{ $iteam->getRegion()->name ?? '-' }}</td>
+
+{{--                                <td>{{$iteam->address}}</td>--}}
                                 <td>{{$iteam->district}}</td>
                                 <td>
                                     <form style="display: inline" action="{{ route('admin.customers.destroy', $iteam->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
@@ -160,35 +190,7 @@
                     </div>
                 </div>
             </div>
-{{--      <div class="card-body">--}}
-{{--        <div class="table-responsive">--}}
-{{--          <table class="table table-bordered table-md">--}}
-{{--            <tbody><tr>--}}
-{{--              <th>#</th>--}}
-{{--              <th>Name</th>--}}
-{{--              <th>Slug</th>--}}
-{{--              <th>Action</th>--}}
-{{--            </tr>--}}
-{{--            <tr>--}}
-{{--                <td>{{$loop->iteration  }}</td>--}}
-{{--                <td>{{ $iteam->name_uz }}</td>--}}
-{{--                <td>{{ $iteam->slug }}</td>--}}
 
-{{--                <td >--}}
-{{--                    <form style="display: inline" action="{{ route('admin.customers.destroy',$iteam->id) }}" method="POST">--}}
-{{--                        @csrf--}}
-{{--                        @method('DELETE')--}}
-{{--                        <button href="#" class="btn btn-danger" onclick="return confirm('Ochirishni xohlisizmi?')" type="submit">Delete</button>--}}
-{{--                    </form>--}}
-{{--                    <a href="{{ route('admin.customers.edit',$iteam->id) }}" class="btn btn-success">Edit</a>--}}
-{{--                    <a href="{{ route('admin.customers.show',$iteam->id) }}" class="btn btn-warning">Show</a>--}}
-{{--                </td>--}}
-{{--              </tr>--}}
-{{--            @endforeach--}}
-{{--          </tbody>--}}
-{{--          </table>--}}
-{{--        </div>--}}
-{{--      </div>--}}
       <div class="card-footer text-right">
         <nav class="d-inline-block">
             {{ $customers->links() }}

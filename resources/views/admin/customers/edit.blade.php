@@ -101,8 +101,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Tuman</label>
-                            <input type="text" name="address" class="form-control" value="{{$customer->address}}">
+                            <label>Viloyat</label>
+                            <select name="region_id" class="form-control" required>
+                                <option value="">-- Viloyatni tanlang --</option>
+                                @foreach($regions as $region)
+                                    <option value="{{ $region->id }}"
+                                        {{ $customer->region_id == $region->id ? 'selected' : '' }}>
+                                        {{ $region->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Manzil</label>
@@ -115,32 +123,34 @@
             </div>
             <div class="col-10 col-md-4 col-lg-4">
                 <div class="card">
-
                     <div class="card-header">
                         <h4>Oylik turi</h4>
                     </div>
                     <div class="card-body">
                         <div class="form-group status-group">
                             <label>Turini tanlang</label>
-                            <select class="form-control" name="type" >
+                            <select class="form-control" name="type" id="type-select">
                                 <option value="oylik" {{ $customer->type == 'oylik' ? 'selected' : '' }}>Oylik mijoz</option>
                                 <option value="odiy" {{ $customer->type == 'odiy' ? 'selected' : '' }}>Odiy</option>
                             </select>
-
                         </div>
-                        <div class="form-group">
+
+                        <div class="form-group balance-total-group">
                             <label>Balans (jami)</label>
                             <input type="text" readonly class="form-control" value="{{ number_format($customer->balance, 0, '.', ' ') }}">
                         </div>
-                        <div class="form-group">
+
+                        <div class="form-group balance-group">
                             <label>Balans to'ldirish</label>
                             <input type="text" name="balance" class="form-control" placeholder="0">
                             <a href="{{ route('admin.cusomers.histories', $customer->id) }}" class="icon-btn">
-                                Balans toldirish tarixi
+                                Balans to‘ldirish tarixi
                             </a>
                         </div>
                     </div>
                 </div>
+
+
             </div>
         </div>
         <div class="text-center">
@@ -149,6 +159,27 @@
         <form>
             @endsection
             @section('js')
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const select = document.getElementById('type-select');
+                        const statusGroup = document.querySelector('.status-group');
+                        const balanceTotalGroup = document.querySelector('.balance-total-group');
+                        const balanceGroup = document.querySelector('.balance-group');
+
+                        function toggleFields() {
+                            const isOylik = select.value === 'oylik';
+
+                            statusGroup.style.display = isOylik ? 'block' : 'none';
+                            balanceTotalGroup.style.display = isOylik ? 'block' : 'none';
+                            balanceGroup.style.display = isOylik ? 'block' : 'none';
+                        }
+
+                        toggleFields(); // Boshlanishida ishlaydi
+                        select.addEventListener('change', toggleFields); // Har safar tanlanganda ishlaydi
+                    });
+                </script>
+
+
                 <script src="/admin/assets/js/app.min.js"></script>
                 <!-- JS Libraies -->
                 <script src="/admin/assets/bundles/cleave-js/dist/cleave.min.js"></script>

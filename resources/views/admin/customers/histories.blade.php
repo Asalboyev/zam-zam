@@ -50,7 +50,9 @@
                 @forelse ($customer->balanceHistories as $history)
                     <tr>
                         <td>{{ $history->id }}</td>
-                        <td>{{ $history->amount }}</td>
+                        <td>{{ number_format($history->amount, 0, '.', ' ') }}</td>
+
+
                         <td>{{ ucfirst($history->type) }}</td>
                         <td>{{ $history->description }}</td>
                         <td>{{ $history->created_at->format('Y-m-d H:i') }}</td>

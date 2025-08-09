@@ -12,13 +12,28 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Viloyatlar jadvali
+        Schema::create('regions', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // Viloyat nomi
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+// Mijozlar jadvali
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('phone')->nullable();
             $table->string('telegram')->nullable();
             $table->enum('status', ['Active', 'Blok'])->default('Active');
-                $table->enum('type', ['oylik', 'odiy'])->default('odiy');
+            $table->enum('type', ['oylik', 'odiy'])->default('odiy');
+
+            // Viloyat bilan bog‘lash
+            $table->foreignId('region_id')
+                ->nullable()
+                ->constrained('regions')
+                ->nullOnDelete();
 
             // Address information
             $table->string('address')->nullable();
@@ -32,6 +47,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
     }
 
     /**
