@@ -32,66 +32,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
-        .responsive-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-start;
-            gap: 3rem; /* O'rtadagi masofa */
-            margin-left: auto;
-            margin-right: auto;
+        .customTable {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: auto; /* Ustun kengligi avtomatik bo‘lsin */
         }
 
-        .responsive-column {
-            flex: 1 1 300px;
-        }
-
-        .card-header {
+        .customTable th,
+        .customTable td {
             border: 2px solid #DCDCE7 !important;
-            border-bottom: none !important;
+            padding: 6px 8px;
+            text-align: center;
+            vertical-align: middle;
+            white-space: normal;     /* Matnni qatordan qatorga o‘tkazish */
+            word-break: break-word;  /* Uzoq so‘zlarni bo‘lib yozish */
         }
 
-        .customTable thead tr {
-            background-color: #fff !important;
-
+        /* Kichik ekranda skroll bo‘lishi uchun */
+        .table-responsive {
+            overflow-x: auto;
         }
-
-        .customTable thead tr th {
-            border: 2px solid #DCDCE7 !important;
-            background-color: #fff !important;
-
-        }
-
-        .customTable thead tr .sortTable {
-            font-size: 12px;
-            font-weight: 400;
-            color: #1C1C29;
-        }
-
-        .customTable tbody tr td {
-            border: 2px solid #DCDCE7 !important;
-        }
-
-        .customTable tbody tr .sortTable {
-            font-size: 12px;
-            font-weight: 400;
-            color: #1C1C29;
-
-        }
-
-        @media screen and (max-width: 768px) {
-            .responsive-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 20px;
-                margin-left: 1rem;
-                margin-right: 1rem;
-            }
-
-            .responsive-column {
-                width: 100%;
-            }
-        }
-
     </style>
 @endsection
 @section('content')
@@ -198,16 +158,16 @@
                                         <th style="max-width: 50px !important; background: #F5F5F7 !important"><img
                                                 style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}"></th>
                                         @foreach($meals as $index => $meal)
-                                            <th style="color: {{ $colors[$index % count($colors)] }};">
+                                            <th style="width: 200px; color: {{ $colors[$index % count($colors)] }};">
                                                 {{ $meal->name }}
                                             </th>
                                         @endforeach
                                         <th style="background: #F5F5F7 !important; width: 40px"><span
                                                 style="margin-left: 3px">T</span></th>
                                         <th style="width: 200px">Cola</th>
-                                        <th style="width: 200px">Dostavka</th>
-                                        <th>Kuryer</th>
-                                        <th style="width: 200px">To‘lov</th>
+                                        <th style="width: 250px">Dostavka</th>
+                                        <th style="width: 250px">Kuryer</th>
+                                        <th style="width: 100px">To‘lov</th>
                                         <th style="background: #F5F5F7 !important;">Jami</th>
                                     </tr>
                                     </thead>
@@ -243,12 +203,8 @@
                                                    value="{{ old("orders.$i.balance") }}">
                                         </td>
                                         <td style="background: #F5F5F7">
-                                            <input style="background: #F5F5F7 !important; border: none" type="text"
-                                                   name="orders[{{ $i }}][phone]"
-                                                   class="customer-phone "
-                                                   readonly
-                                                   value="{{ old("orders.$i.phone") }}"
-                                                   onclick="copyToClipboard(this)">
+                                            <img
+                                                style="margin-left: 3px" src="{{asset('/img/call-hospital.svg')}}">
                                         </td>
                                         @foreach($meals as $meal)
                                             <td>
