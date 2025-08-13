@@ -167,8 +167,8 @@
                                         <th style="width: 200px">Cola</th>
                                         <th style="width: 250px">Dostavka</th>
                                         <th style="width: 250px">Kuryer</th>
-                                        <th style="width: 100px">To‘lov</th>
-                                        <th style="background: #F5F5F7 !important;">Jami</th>
+                                        <th style="width: 300px">To‘lov</th>
+                                        <th style="width: 400px; background: #F5F5F7 !important;">Jami</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -376,14 +376,27 @@
                             <td>{{ $order->cola_quantity }}</td>
                             <td>{{ number_format($order->delivery_fee, 0, ',', ' ') }} </td>
                             <td>{{ $order->driver->name ?? '-' }}</td>
+{{--                            <td>--}}
+{{--                                {{ ucfirst($order->payment_method) }}--}}
+{{--                                @if ($order->payment_method === 'naqt')--}}
+{{--                                    <img src="{{ asset('/img/zam-zam-cash.svg') }}" alt="Nax" width="20">--}}
+{{--                                @elseif ($order->payment_method === 'karta')--}}
+{{--                                    <img src="{{ asset('/img/card.svg') }}" alt="Card" width="20">--}}
+{{--                                @endif--}}
+{{--                            </td>--}}
                             <td>
-                                {{ ucfirst($order->payment_method) }}
-                                @if ($order->payment_method === 'naqt')
-                                    <img src="{{ asset('/img/zam-zam-cash.svg') }}" alt="Nax" width="20">
-                                @elseif ($order->payment_method === 'karta')
-                                    <img src="{{ asset('/img/card.svg') }}" alt="Card" width="20">
-                                @endif
+                                <select class="payment-method-select form-control"
+                                        data-order-id="{{ $order->id }}"
+                                        style="width: 140px; display: inline-block; background-position: right 8px center; background-repeat: no-repeat; background-size: 20px;">
+                                    <option value="naqt" data-icon="{{ asset('/img/zam-zam-cash.svg') }}" {{ $order->payment_method === 'naqt' ? 'selected' : '' }}>
+                                        Naqt
+                                    </option>
+                                    <option value="karta" data-icon="{{ asset('/img/card.svg') }}" {{ $order->payment_method === 'karta' ? 'selected' : '' }}>
+                                        Karta
+                                    </option>
+                                </select>
                             </td>
+
                             <td style="background: #F5F5F7 !important;">
                                 <strong>{{ number_format($order->total_amount, 0, ',', ' ') }}</strong>
                             </td>
@@ -407,6 +420,7 @@
                                         style="width: 120px; display: inline-block; {{ $bgColor }}"
                                         max="{{ $order->total_amount }}"
                                         {{ strtolower($order->customer->type) === 'oylik' ? 'disabled' : '' }}
+                                        data-order-id="{{ $order->id }}"
                                     >
                                 </div>
                             </td>
@@ -435,6 +449,46 @@
         </div>
         @endsection
         @section('js')
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const selects = document.querySelectorAll(".payment-method-select");
+
+                    function updateSelectIcon(select) {
+                        const selectedOption = select.options[select.selectedIndex];
+                        const iconUrl = selectedOption.dataset.icon;
+                        select.style.backgroundImage = `url(${iconUrl})`;
+                    }
+
+                    selects.forEach(select => {
+                        updateSelectIcon(select); // yuklanganda ham icon chiqadi
+
+                        select.addEventListener("change", function () {
+                            const orderId = this.dataset.orderId;
+                            const newMethod = this.value;
+                            updateSelectIcon(this); // icon yangilash
+
+                            fetch(`/admin/orders/${orderId}/update-payment-method`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify({payment_method: newMethod})
+                            })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (!data.success) {
+                                        console.warn("Xatolik:", data.message || "Ma'lumot saqlanmadi.");
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("Server bilan ulanishda xatolik:", err);
+                                });
+                        });
+                    });
+                });
+            </script>
+
             <script>
                 $(document).on('change', '.customer-select', function () {
                     let lastDriverId = $(this).find(':selected').data('last-driver');

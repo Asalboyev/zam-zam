@@ -94,146 +94,99 @@
                     @csrf
                     @method('PUT')
 
-                    <input type="hidden" name="order_date" value="{{ $order->order_date ?? now()->format('Y-m-d') }}">
-                    <h2>Order edit </h2>
+                    <div class="d-flex align-items-center gap-3">
+                        <label for="order_date" class="fw-bold">Buyurtma tahrirlash</label>
+                        <input type="date" name="order_date" id="order_date"
+                               class="form-control w-auto"
+                               value="{{ old('order_date', $order->order_date->format('Y-m-d')) }}">
+                    </div>
+
                     <div class="table-responsive mt-3">
-                        <table class="table table-bordered">
+                        <table class="table table-bordered customTable">
                             <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Mijoz</th>
-                                <th>Balans</th>
-                                <th>Telefon</th>
-                                @foreach($meals as $index => $meal)
-                                    <th style="color: {{ $colors[$index % count($colors)] }};">
-                                        {{ $meal->name }}
-                                    </th>
+                                @foreach($meals as $meal)
+                                    <th>{{ $meal->name }}</th>
                                 @endforeach
-                                <th>T</th>
                                 <th>Cola</th>
                                 <th>Dostavka</th>
                                 <th>Kuryer</th>
                                 <th>To‘lov</th>
-                                <th>Umumiy</th>
-                                <th>Olingan</th>
+                                <th>Jami</th>
                             </tr>
                             </thead>
                             <tbody>
-                            @for ($i = 0; $i < 1; $i++)
-                                <tr>
-                                    <td>1</td>
-
-                                    {{-- Mijoz --}}
-                                    <td>
-                                        <select name="orders[0][customer_id]"
-                                                class="form-control customer-select select2" required>
-                                            <option value="">Tanlang</option>
-                                            @foreach($customers as $customer)
-                                                <option value="{{ $customer->id }}"
-                                                        data-phone="{{ $customer->phone }}"
-                                                        data-balance="{{ number_format($customer->balance, 3, '.', ' ') }}"
-                                                    {{ $order->customer_id == $customer->id ? 'selected' : '' }}>
-                                                    {{ $customer->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-
-                                    {{-- Balans --}}
-                                    <td>
-                                        <input type="text" name="orders[0][balance]"
-                                               class="form-control customer-balance" readonly
-                                               value="{{ number_format($order->customer->balance, 3, '.', ' ') }}">
-                                    </td>
-
-                                    {{-- Telefon --}}
-                                    <td>
-                                        <input type="text"
-                                               name="orders[0][phone]"
-                                               class="form-control customer-phone copy-phone"
-                                               readonly
-                                               value="{{ $order->customer->phone }}"
-                                               onclick="copyToClipboard(this)">
-                                    </td>
-
-                                    {{-- Meals --}}
-                                    @foreach($meals as $meal)
-                                        <td>
-                                            <input type="number"
-                                                   name="orders[{{ $i }}][meals][{{ $meal->id }}]"
-
-                                                   class="form-control meal-input"
-                                                   data-price="{{ number_format($meal->price, 3, '.', ' ') }}"
-                                                   min="0"
-                                                   value="{{ $selectedMeals[$meal->id] ?? 0 }}">
-                                        </td>
-                                    @endforeach
-
-
-                                    {{-- Total Meals --}}
-                                    <td>
-                                        <input type="total_meals" class="form-control total-meals" readonly
-                                               value="{{ $order->total_meals }}">
-                                    </td>
-
-                                    {{-- Cola --}}
-                                    <td>
-                                        <input type="number" name="orders[0][cola]" class="form-control cola-input"
-                                               data-price="15000" value="{{ $order->cola_quantity }}">
-                                    </td>
-
-                                    {{-- Delivery --}}
-                                    <td>
-                                        <input type="number" name="orders[0][delivery]"
-                                               class="form-control delivery-input editable-delivery"
-                                               value="{{ $order->delivery_fee }}">
-                                    </td>
-
-                                    {{-- Driver --}}
-                                    <td>
-                                        <select name="orders[0][driver_id]" class="form-control driver-select select2">
-                                            @foreach($drivers as $driver)
-                                                <option
-                                                    value="{{ $driver->id }}" {{ $order->driver_id == $driver->id ? 'selected' : '' }}>
-                                                    {{ $driver->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-
-                                    <td>
-                                        <select name="orders[0][payment_type]" class="form-control payment-type">
-                                            <option
-                                                value="naqt" {{ $order->payment_method == 'naqt' ? 'selected' : '' }}>
-                                                Naqd
+                            <tr>
+                                {{-- Mijoz tanlash --}}
+                                <td>
+                                    <select name="customer_id" class="form-control" required>
+                                        <option value="">Tanlang</option>
+                                        @foreach($customers as $customer)
+                                            <option value="{{ $customer->id }}"
+                                                {{ old('customer_id', $order->customer_id) == $customer->id ? 'selected' : '' }}>
+                                                {{ $customer->name }}
                                             </option>
-                                            <option
-                                                value="karta" {{ $order->payment_method == 'karta' ? 'selected' : '' }}>
-                                                Karta
-                                            </option>
-                                            <option
-                                                value="transfer" {{ $order->payment_method == 'transfer' ? 'selected' : '' }}>
-                                                Bank orqali
-                                            </option>
-                                        </select>
-                                    </td>
+                                        @endforeach
+                                    </select>
+                                </td>
 
-                                    {{-- Total Sum --}}
+                                {{-- Meal quantity inputs --}}
+                                @foreach($meals as $index => $meal)
                                     <td>
-                                        <input type="text" class="form-control total-sum" readonly
-                                               value="{{ number_format($order->total_amount, 2, '.', ' ') }}">
+                                        <input type="number"
+                                               name="meals[{{ $meal->id }}]"
+                                               class="form-control"
+                                               min="0"
+                                               value="{{ old("meals.$meal->id", $order->{'meal_'.($index+1).'_quantity'}) }}">
                                     </td>
-                                    <td>
-                                        <input type="text" name="received_amount" class="form-control "
-                                               value="{{ number_format($order->received_amount, 2, '.', ' ') }}">
-                                    </td>
-                                </tr>
-                            @endfor
+                                @endforeach
+
+                                {{-- Cola --}}
+                                <td>
+                                    <input type="number" name="cola" class="form-control"
+                                           value="{{ old('cola', $order->cola_quantity) }}">
+                                </td>
+
+                                {{-- Delivery --}}
+                                <td>
+                                    <input type="number" name="delivery" class="form-control"
+                                           value="{{ old('delivery', $order->delivery_fee) }}">
+                                </td>
+
+                                {{-- Driver --}}
+                                <td>
+                                    <select name="driver_id" class="form-control">
+                                        <option value="">Tanlang</option>
+                                        @foreach($drivers as $driver)
+                                            <option value="{{ $driver->id }}"
+                                                {{ old('driver_id', $order->driver_id) == $driver->id ? 'selected' : '' }}>
+                                                {{ $driver->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                {{-- Payment type --}}
+                                <td>
+                                    <select name="payment_type" class="form-control">
+                                        <option value="naqt" {{ old('payment_type', $order->payment_method) == 'naqt' ? 'selected' : '' }}>Naqd</option>
+                                        <option value="karta" {{ old('payment_type', $order->payment_method) == 'karta' ? 'selected' : '' }}>Karta</option>
+                                        <option value="transfer" {{ old('payment_type', $order->payment_method) == 'transfer' ? 'selected' : '' }}>Bank orqali</option>
+                                    </select>
+                                </td>
+
+                                {{-- Jami readonly --}}
+                                <td>
+                                    <input type="text" class="form-control" readonly
+                                           value="{{ number_format($order->total_amount, 0, '.', ' ') }}">
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <button type="submit" class="btn btn-success mt-3">Yangilash</button>
+                    <button type="submit" class="btn btn-primary mt-3">Yangilash</button>
                 </form>
             </div>
         </div>

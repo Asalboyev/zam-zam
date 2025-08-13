@@ -57,6 +57,8 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function(){
     Route::get('/orders/ordinary-debt', [OrdersController::class, 'ordinary_debt'])->name('ordinary_debt');
     Route::get('/orders/monthly-debtors', [OrdersController::class, 'monthly_debtors'])->name('monthly_debtors');
 
+    Route::post('/admin/orders/{order}/update-payment-method', [OrdersController::class, 'updatePaymentMethod']);
+
     Route::resource('orders', OrdersController::class);
     Route::get('/orders/all', [OrdersController::class, 'show'])->name('orders.all');
 
