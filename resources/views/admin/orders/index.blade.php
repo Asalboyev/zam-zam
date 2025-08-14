@@ -227,7 +227,8 @@
                                                 value="{{ old("orders.$i.total_meals") }}"></td>
                                         <td><input style="background: #fff !important; border: none" type="number"
                                                    name="orders[{{ $i }}][cola]" class="form-control cola-input"
-                                                   data-price="15000" value="{{ old("orders.$i.cola", 0) }}"></td>
+                                                   data-price="15000" value="{{ old("orders.$i.cola", 0) }}">
+                                        </td>
                                         <td><input style="background: #fff !important; border: none" type="number"
                                                    name="orders[{{ $i }}][delivery]"
                                                    class="form-control delivery-input editable-delivery"
@@ -526,73 +527,97 @@
 
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
             <script>
+                // Select2-ni ishga tushirish
                 $('.select2').select2();
 
+                /**
+                 * Matndan raqamga aylantirish
+                 * Masalan: "20 000" yoki "20,000" -> 20000
+                 */
                 function parseNumber(value) {
                     if (!value) return 0;
-                    // remove spaces and commas, convert to float
                     return parseFloat(value.toString().replace(/[\s,]/g, '')) || 0;
                 }
 
+                /**
+                 * Har bir jadval qatori bo‘yicha hisob-kitob
+                 */
                 function updateRowCalculations(row) {
                     let totalMeals = 0;
                     let totalSum = 0;
 
-                    // Hisob ovqatlar uchun
+                    // 🍽 Ovqatlar hisoblash
                     row.querySelectorAll(".meal-input").forEach(input => {
                         const count = parseNumber(input.value);
                         const price = parseNumber(input.dataset.price);
-                        totalMeals += count;
-                        totalSum += count * price;
+
+                        if (count > 0) { // faqat 0 dan katta bo‘lsa qo‘shamiz
+                            totalMeals += count;
+                            totalSum += count * price;
+                        }
                     });
 
-                    // Cola hisoblash
+                    // 🥤 Cola hisoblash
                     const colaInput = row.querySelector(".cola-input");
-                    const colaCount = parseNumber(colaInput.value);
-                    const colaPrice = parseNumber(colaInput.dataset.price);
-                    totalSum += colaCount * colaPrice;
+                    if (colaInput) {
+                        const colaCount = parseNumber(colaInput.value);
+                        const colaPrice = parseNumber(colaInput.dataset.price);
+                        if (colaCount > 0) {
+                            totalSum += colaCount * colaPrice;
+                        }
+                    }
 
-                    // Yetkazib berish narxi
+                    // 🚚 Yetkazib berish narxi
                     const deliveryInput = row.querySelector(".delivery-input");
-                    if (!deliveryInput.classList.contains('manual-edit')) {
+                    if (deliveryInput && !deliveryInput.classList.contains('manual-edit')) {
                         deliveryInput.value = totalMeals > 8 ? 0 : 20000;
                     }
                     totalSum += parseNumber(deliveryInput.value);
 
-                    // Natijalarni chiqarish
+                    // 📊 Natijalarni chiqarish
                     row.querySelector(".total-meals").value = totalMeals;
-
-                    // Tozalangan formatda ko‘rsatish (masalan: 275000 → 275 000)
                     row.querySelector(".total-sum").value = totalSum.toLocaleString('ru-RU');
                 }
 
-                // Har bir inputda hisobni yangilash
-                document.addEventListener("input", function () {
-                    document.querySelectorAll("tbody tr").forEach(function (row) {
+                /**
+                 * Barcha qatorlarni hisoblash
+                 */
+                function recalculateAllRows() {
+                    document.querySelectorAll("tbody tr").forEach(row => {
                         updateRowCalculations(row);
                     });
+                }
+
+                // 🔄 Input o‘zgarganda avtomatik hisoblash
+                document.addEventListener("input", function () {
+                    recalculateAllRows();
                 });
 
-                // Select o‘zgarganda malumotlarni yuklash va hisoblash
+                // 👤 Mijoz tanlanganda ma'lumotlarni yuklash
                 $(document).on('change', '.customer-select', function () {
                     const row = $(this).closest('tr');
                     const selectedOption = $(this).find('option:selected');
                     const phone = selectedOption.data('phone');
                     const balance = selectedOption.data('balance');
 
-                    row.find('.customer-phone').val(phone);
-                    row.find('.customer-balance').val(balance);
+                    row.find('.customer-phone').val(phone || '');
+                    row.find('.customer-balance').val(balance || '');
 
                     updateRowCalculations(row[0]);
                 });
 
-                // Yetkazib berish qiymati qo‘lda tahrir qilinganda
+                // ✏️ Yetkazib berish qiymati qo‘lda tahrir qilinganda
                 document.querySelectorAll('.editable-delivery').forEach(input => {
                     input.addEventListener('input', function () {
                         input.classList.add('manual-edit');
                         const row = input.closest('tr');
                         updateRowCalculations(row);
                     });
+                });
+
+                // 🚀 Dastlabki hisob-kitob
+                document.addEventListener("DOMContentLoaded", function () {
+                    recalculateAllRows();
                 });
             </script>
 

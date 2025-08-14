@@ -55,40 +55,7 @@
 
                 </div>
             @endif
-            {{--            <div style="display: flex; justify-content: space-between; padding: 15px 25px">--}}
-            {{--                <div>--}}
-            {{--                    @foreach($meals as $index => $meal)--}}
-            {{--                        <div style="color: {{ $colors[$index % count($colors)] }};">--}}
-            {{--                            {{ $meal->name }}--}}
-            {{--                            ({{ $meal->total_count }} ta)--}}
-            {{--                        </div>--}}
-            {{--                    @endforeach--}}
-            {{--                </div>--}}
 
-            {{--                <div>--}}
-            {{--                    <div><strong>Plan:</strong>--}}
-
-            {{--                    </div>--}}
-            {{--                    <div><strong>Fakt:</strong>--}}
-
-            {{--                    </div>--}}
-            {{--                </div>--}}
-
-
-            {{--                <div>--}}
-            {{--                    <div><strong>Plan:</strong>--}}
-            {{--                        Karta: {{ number_format($planByMethod['karta'] ?? 0, 0, '.', ' ') }} |--}}
-            {{--                        Naqt: {{ number_format($planByMethod['naqt'] ?? 0, 0, '.', ' ') }}--}}
-            {{--                    </div>--}}
-            {{--                    <div><strong>Fakt:</strong>--}}
-            {{--                        Karta: {{ number_format($factByMethod['karta'] ?? 0, 0, '.', ' ') }} |--}}
-            {{--                        Naqt: {{ number_format($factByMethod['naqt'] ?? 0, 0, '.', ' ') }}--}}
-            {{--                    </div>--}}
-            {{--                </div>--}}
-
-
-
-            {{--            </div>--}}
             <div class="card-header">
                 <form method="POST" action="{{ route('admin.orders.update', $order->id) }}">
                     @csrf
@@ -109,6 +76,7 @@
                                 @foreach($meals as $meal)
                                     <th>{{ $meal->name }}</th>
                                 @endforeach
+                                <th>Totla</th>
                                 <th>Cola</th>
                                 <th>Dostavka</th>
                                 <th>Kuryer</th>
@@ -131,18 +99,28 @@
                                     </select>
                                 </td>
 
-                                {{-- Meal quantity inputs --}}
+                                @php
+                                    $totalQuantity = 0;
+                                @endphp
+
                                 @foreach($meals as $index => $meal)
+                                    @php
+                                        $quantity = old("meals.$meal->id", $order->{'meal_'.($index+1).'_quantity'});
+                                        $totalQuantity += (int) $quantity;
+                                    @endphp
                                     <td>
                                         <input type="number"
                                                name="meals[{{ $meal->id }}]"
                                                class="form-control"
                                                min="0"
-                                               value="{{ old("meals.$meal->id", $order->{'meal_'.($index+1).'_quantity'}) }}">
+                                               value="{{ $quantity }}">
                                     </td>
                                 @endforeach
 
-                                {{-- Cola --}}
+                                <td>
+                                    <strong>{{ $totalQuantity }}</strong>
+                                </td>
+
                                 <td>
                                     <input type="number" name="cola" class="form-control"
                                            value="{{ old('cola', $order->cola_quantity) }}">
