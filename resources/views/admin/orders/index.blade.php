@@ -194,7 +194,7 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-
+                                            <a href="{{ route('admin.customers.create') }}" >Yaratish</a>
                                         </td>
                                         <td style="background: #F5F5F7 !important;">
                                             <input style="background: #F5F5F7 !important; border: none" type="text"
@@ -526,22 +526,111 @@
             </script>
 
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{{--            <script>--}}
+{{--                // Select2-ni ishga tushirish--}}
+{{--                $('.select2').select2();--}}
+
+{{--                /**--}}
+{{--                 * Matndan raqamga aylantirish--}}
+{{--                 * Masalan: "20 000" yoki "20,000" -> 20000--}}
+{{--                 */--}}
+{{--                function parseNumber(value) {--}}
+{{--                    if (!value) return 0;--}}
+{{--                    return parseFloat(value.toString().replace(/[\s,]/g, '')) || 0;--}}
+{{--                }--}}
+
+{{--                /**--}}
+{{--                 * Har bir jadval qatori bo‘yicha hisob-kitob--}}
+{{--                 */--}}
+{{--                function updateRowCalculations(row) {--}}
+{{--                    let totalMeals = 0;--}}
+{{--                    let totalSum = 0;--}}
+
+{{--                    // 🍽 Ovqatlar hisoblash--}}
+{{--                    row.querySelectorAll(".meal-input").forEach(input => {--}}
+{{--                        const count = parseNumber(input.value);--}}
+{{--                        const price = parseNumber(input.dataset.price);--}}
+
+{{--                        if (count > 0) { // faqat 0 dan katta bo‘lsa qo‘shamiz--}}
+{{--                            totalMeals += count;--}}
+{{--                            totalSum += count * price;--}}
+{{--                        }--}}
+{{--                    });--}}
+
+{{--                    // 🥤 Cola hisoblash--}}
+{{--                    const colaInput = row.querySelector(".cola-input");--}}
+{{--                    if (colaInput) {--}}
+{{--                        const colaCount = parseNumber(colaInput.value);--}}
+{{--                        const colaPrice = parseNumber(colaInput.dataset.price);--}}
+{{--                        if (colaCount > 0) {--}}
+{{--                            totalSum += colaCount * colaPrice;--}}
+{{--                        }--}}
+{{--                    }--}}
+
+{{--                    // 🚚 Yetkazib berish narxi--}}
+{{--                    const deliveryInput = row.querySelector(".delivery-input");--}}
+{{--                    if (deliveryInput && !deliveryInput.classList.contains('manual-edit')) {--}}
+{{--                        deliveryInput.value = totalMeals > 8 ? 0 : 20000;--}}
+{{--                    }--}}
+{{--                    totalSum += parseNumber(deliveryInput.value);--}}
+
+{{--                    // 📊 Natijalarni chiqarish--}}
+{{--                    row.querySelector(".total-meals").value = totalMeals;--}}
+{{--                    row.querySelector(".total-sum").value = totalSum.toLocaleString('ru-RU');--}}
+{{--                }--}}
+
+{{--                /**--}}
+{{--                 * Barcha qatorlarni hisoblash--}}
+{{--                 */--}}
+{{--                function recalculateAllRows() {--}}
+{{--                    document.querySelectorAll("tbody tr").forEach(row => {--}}
+{{--                        updateRowCalculations(row);--}}
+{{--                    });--}}
+{{--                }--}}
+
+{{--                // 🔄 Input o‘zgarganda avtomatik hisoblash--}}
+{{--                document.addEventListener("input", function () {--}}
+{{--                    recalculateAllRows();--}}
+{{--                });--}}
+
+{{--                // 👤 Mijoz tanlanganda ma'lumotlarni yuklash--}}
+{{--                $(document).on('change', '.customer-select', function () {--}}
+{{--                    const row = $(this).closest('tr');--}}
+{{--                    const selectedOption = $(this).find('option:selected');--}}
+{{--                    const phone = selectedOption.data('phone');--}}
+{{--                    const balance = selectedOption.data('balance');--}}
+
+{{--                    row.find('.customer-phone').val(phone || '');--}}
+{{--                    row.find('.customer-balance').val(balance || '');--}}
+
+{{--                    updateRowCalculations(row[0]);--}}
+{{--                });--}}
+
+{{--                // ✏️ Yetkazib berish qiymati qo‘lda tahrir qilinganda--}}
+{{--                document.querySelectorAll('.editable-delivery').forEach(input => {--}}
+{{--                    input.addEventListener('input', function () {--}}
+{{--                        input.classList.add('manual-edit');--}}
+{{--                        const row = input.closest('tr');--}}
+{{--                        updateRowCalculations(row);--}}
+{{--                    });--}}
+{{--                });--}}
+
+{{--                // 🚀 Dastlabki hisob-kitob--}}
+{{--                document.addEventListener("DOMContentLoaded", function () {--}}
+{{--                    recalculateAllRows();--}}
+{{--                });--}}
+{{--            </script>--}}
             <script>
                 // Select2-ni ishga tushirish
                 $('.select2').select2();
 
-                /**
-                 * Matndan raqamga aylantirish
-                 * Masalan: "20 000" yoki "20,000" -> 20000
-                 */
+                // Matndan raqamga aylantirish
                 function parseNumber(value) {
                     if (!value) return 0;
                     return parseFloat(value.toString().replace(/[\s,]/g, '')) || 0;
                 }
 
-                /**
-                 * Har bir jadval qatori bo‘yicha hisob-kitob
-                 */
+                // Har bir jadval qatori bo‘yicha hisob-kitob
                 function updateRowCalculations(row) {
                     let totalMeals = 0;
                     let totalSum = 0;
@@ -557,13 +646,29 @@
                         }
                     });
 
-                    // 🥤 Cola hisoblash
+                    // 🥤 Cola hisoblash (bonus qo‘shish)
                     const colaInput = row.querySelector(".cola-input");
                     if (colaInput) {
-                        const colaCount = parseNumber(colaInput.value);
+                        let colaCount = parseNumber(colaInput.value);
                         const colaPrice = parseNumber(colaInput.dataset.price);
-                        if (colaCount > 0) {
-                            totalSum += colaCount * colaPrice;
+
+                        // Bonus colalar (8+ ta ovqat → 1, 16+ ta ovqat → 2)
+                        let bonusCola = 0;
+                        if (totalMeals >= 16) {
+                            bonusCola = 2;
+                        } else if (totalMeals >= 8) {
+                            bonusCola = 1;
+                        }
+
+                        // Agar foydalanuvchi qo‘lda o‘zgartirmagan bo‘lsa → bonus qo‘shiladi
+                        if (!colaInput.classList.contains('manual-edit')) {
+                            colaCount = bonusCola;
+                            colaInput.value = colaCount;
+                        }
+
+                        // Bonus colalar narxini hisobga olmaslik
+                        if (colaCount > bonusCola) {
+                            totalSum += (colaCount - bonusCola) * colaPrice;
                         }
                     }
 
@@ -572,16 +677,14 @@
                     if (deliveryInput && !deliveryInput.classList.contains('manual-edit')) {
                         deliveryInput.value = totalMeals > 8 ? 0 : 20000;
                     }
-                    totalSum += parseNumber(deliveryInput.value);
+                    totalSum += parseNumber(deliveryInput?.value || 0);
 
                     // 📊 Natijalarni chiqarish
                     row.querySelector(".total-meals").value = totalMeals;
                     row.querySelector(".total-sum").value = totalSum.toLocaleString('ru-RU');
                 }
 
-                /**
-                 * Barcha qatorlarni hisoblash
-                 */
+                // Barcha qatorlarni hisoblash
                 function recalculateAllRows() {
                     document.querySelectorAll("tbody tr").forEach(row => {
                         updateRowCalculations(row);
@@ -589,7 +692,11 @@
                 }
 
                 // 🔄 Input o‘zgarganda avtomatik hisoblash
-                document.addEventListener("input", function () {
+                document.addEventListener("input", function (e) {
+                    // Agar foydalanuvchi colani qo‘lda tahrir qilsa → manual-edit belgilanadi
+                    if (e.target.classList.contains('cola-input')) {
+                        e.target.classList.add('manual-edit');
+                    }
                     recalculateAllRows();
                 });
 
@@ -620,6 +727,7 @@
                     recalculateAllRows();
                 });
             </script>
+
 
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
