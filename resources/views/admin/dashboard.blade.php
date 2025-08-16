@@ -3,92 +3,520 @@
 @section('title', 'Boshqaruv Paneli')
 
 @section('css')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @endsection
 
 @section('content')
 
-    <div class="container">
-        <div class="row">
-            <!-- Statistik kartalar -->
+    <div class="container col-12">
+
+        <div class="row ">
+
             <div class="col-md-3">
-                <div class="card text-white bg-primary mb-3">
-                    <div class="card-header">Ovqatlar</div>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ $mealCount }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-white bg-success mb-3">
+                <div class="card bg-white text-dark mb-3 shadow-sm">
                     <div class="card-header">Mijozlar</div>
                     <div class="card-body">
-                        <h5 class="card-title">{{ $customerCount }}</h5>
+                        <p class="card-text mb-1">Umumiy: <strong>{{ $customerCount }}</strong></p>
+                        <p class="card-text mb-1">Oddiy: <strong>{{ $ordinaryCustomer }}</strong></p>
+                        <p class="card-text mb-0">Oylik: <strong>{{ $monthlyCustomer }}</strong></p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-white bg-warning mb-3">
-                    <div class="card-header">Haydovchilar</div>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ $driverCount }}</h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-white bg-danger mb-3">
-                    <div class="card-header">Bugungi Savdo</div>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ number_format($dailySales, 0, ',', ' ') }} so'm</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Grafik (So‘nggi 7 kun savdosi) -->
-        <div class="card mt-4">
-            <div class="card-header">
-                So‘nggi 7 kunlik savdo grafigi
+            <div class="col-md-3">
+                <div class="card bg-white text-dark mb-3 shadow-sm">
+                    <div class="card-header">Buyurtmalar</div>
+                    <div class="card-body">
+                        <p class="card-text mb-1">Umumiy: <strong>{{ $orderCount }}</strong></p>
+                        <p class="card-text mb-0">Oylik o‘rtacha: <strong>{{ $monthlyAverage }}</strong></p>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <canvas id="salesChart" height="100"></canvas>
+
+            <div class="col-md-3">
+                <div class="card bg-white text-dark mb-3 shadow-sm">
+                    <div class="card-header">Moliya</div>
+                    <div class="card-body">
+                        <p class="card-text mb-1">Oylik mijozlar balansi:
+                            <strong style="color: #3C4BDC">{{ number_format($monthlyBalance, 0, '.', ' ') }}</strong>
+                        </p>
+                        <p class="card-text mb-0">Oylik mijozlar qarzi:
+                            <strong style="color: red">{{ number_format($monthlyDebt, 0, '.', ' ') }}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card bg-white text-dark mb-3 shadow-sm">
+                    <div class="card-header">Qarzdorlik</div>
+                    <div class="card-body">
+                        <p class="card-text mb-1">Qarzdorlar: <strong>{{ $debtorCount }}</strong></p>
+                        <p class="card-text mb-1">To‘lanmagan buyurtmalar soni: <strong>{{ $unpaidOrdersCount }}</strong></p>
+                        <p class="card-text mb-0">Qarzdorlik summasi:
+                            <strong class="text-danger">{{ number_format($monthlyDebt, 0, '.', ' ') }}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {{-- Kunlik Daromad --}}
+            <div class="row">
+                {{-- Kundalik Daromad --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Kundalik Daromad</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="date" name="daily_date" value="{{ request('daily_date') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="daily_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Oylik Daromad --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Oylik Daromad</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="month" name="start_month" value="{{ request('start_month') }}" class="form-control">
+                                <input type="month" name="end_month" value="{{ request('end_month') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthly_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Kundalik Buyurtmalar soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Kundalik Buyurtmalar soni</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="date" name="daily_orders_date" value="{{ request('daily_orders_date') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="daily_orders_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Oylik Buyurtmalar soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Oylik Buyurtmalar soni</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="month" name="orders_start_month" value="{{ request('orders_start_month') }}" class="form-control">
+                                <input type="month" name="orders_end_month" value="{{ request('orders_end_month') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthly_orders_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Kundalik Ovqat soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Kundalik Ovqat soni</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="date" name="daily_meals_date" value="{{ request('daily_meals_date') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="daily_meals_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Oylik Ovqat soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Oylik Ovqat soni</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="month" name="meals_start_month" value="{{ request('meals_start_month') }}" class="form-control">
+                                <input type="month" name="meals_end_month" value="{{ request('meals_end_month') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthly_meals_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Kundalik Ovqat soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Kundalik Oldi-Sotdi</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="date" name="daily_meals_order_date" value="{{ request('daily_meals_order_date') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="daily_order_meals_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Oylik Ovqat soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Oylik Oldi-Sotdi</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="month" name="meals_order_start_month" value="{{ request('meals_order_start_month') }}" class="form-control">
+                                <input type="month" name="meals_order_end_month" value="{{ request('meals_order_end_month') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthly_order_meals_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Kundalik mijozlar soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Kundalik Mijozlar o‘sishi</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="date" name="daily_clients_date" value="{{ request('daily_clients_date') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="daily_customers_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Oylik mijozlar soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Oylik Mijozlar o‘sishi</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="month" name="clients_start_month" value="{{ request('clients_start_month') }}" class="form-control">
+                                <input type="month" name="clients_end_month" value="{{ request('clients_end_month') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthly_customers_chart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
+
+
 @endsection
 
 @section('js')
+    {{-- Google Charts --}}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script>
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const salesChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($labels) !!},
-                datasets: [{
-                    label: 'Savdo (so‘m)',
-                    data: {!! json_encode($last7Days) !!},
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString() + ' so‘m';
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            // === Daily Chart (Daromad) ===
+            var dailyData = google.visualization.arrayToDataTable([
+                ['Sana', 'Daromad'],
+                    @foreach($dailyLabels as $index => $date)
+                ['{{ $date }}', {{ $dailySalesData[$index] ?? 0 }}],
+                @endforeach
+            ]);
+            var dailyOptions = {
+                title: 'Kundalik Daromad',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: { minValue: 0 },
+                colors: ['#1e88e5'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#ffffff',
+                chartArea: { width: '85%', height: '70%' }
+            };
+            var dailyChart = new google.visualization.LineChart(document.getElementById('daily_chart'));
+            dailyChart.draw(dailyData, dailyOptions);
+
+            // === Monthly Chart (Daromad) ===
+            var monthlyData = google.visualization.arrayToDataTable([
+                ['Oy', 'Daromad'],
+                    @foreach($monthlyLabels as $index => $month)
+                ['{{ $month }}', {{ $monthlySalesData[$index] ?? 0 }}],
+                @endforeach
+            ]);
+            var monthlyOptions = {
+                title: 'Oylik Daromad',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: { minValue: 0 },
+                colors: ['#43a047'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#ffffff',
+                chartArea: { width: '85%', height: '70%' }
+            };
+            var monthlyChart = new google.visualization.LineChart(document.getElementById('monthly_chart'));
+            monthlyChart.draw(monthlyData, monthlyOptions);
+
+            // === Daily Chart (Buyurtmalar soni) ===
+            var dailyOrdersData = google.visualization.arrayToDataTable([
+                ['Sana', 'Buyurtmalar'],
+                    @foreach($dailyOrdersLabels as $index => $date)
+                ['{{ $date }}', {{ $dailyOrdersData[$index] ?? 0 }}],
+                @endforeach
+            ]);
+            var dailyOrdersOptions = {
+                title: 'Kundalik Buyurtmalar soni',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: { minValue: 0 },
+                colors: ['#f4511e'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#ffffff',
+                chartArea: { width: '85%', height: '70%' }
+            };
+            var dailyOrdersChart = new google.visualization.LineChart(document.getElementById('daily_orders_chart'));
+            dailyOrdersChart.draw(dailyOrdersData, dailyOrdersOptions);
+
+            // === Monthly Chart (Buyurtmalar soni) ===
+            var monthlyOrdersData = google.visualization.arrayToDataTable([
+                ['Oy', 'Buyurtmalar'],
+                    @foreach($monthlyOrdersLabels as $index => $month)
+                ['{{ $month }}', {{ $monthlyOrdersData[$index] ?? 0 }}],
+                @endforeach
+            ]);
+            var monthlyOrdersOptions = {
+                title: 'Oylik Buyurtmalar soni',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: { minValue: 0 },
+                colors: ['#8e24aa'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#ffffff',
+                chartArea: { width: '85%', height: '70%' }
+            };
+            var monthlyOrdersChart = new google.visualization.LineChart(document.getElementById('monthly_orders_chart'));
+            monthlyOrdersChart.draw(monthlyOrdersData, monthlyOrdersOptions);
+
+            // === Daily Chart (Ovqat soni) ===
+            var dailyMealsData = google.visualization.arrayToDataTable([
+                ['Sana', 'Ovqat soni'],
+                    @foreach($dailyMealsLabels as $index => $date)
+                ['{{ $date }}', {{ $dailyMealsData[$index] ?? 0 }}],
+                @endforeach
+            ]);
+            var dailyMealsOptions = {
+                title: 'Kundalik Ovqat soni',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: { minValue: 0 },
+                colors: ['#ff9800'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#ffffff',
+                chartArea: { width: '85%', height: '70%' }
+            };
+            var dailyMealsChart = new google.visualization.LineChart(document.getElementById('daily_meals_chart'));
+            dailyMealsChart.draw(dailyMealsData, dailyMealsOptions);
+
+            // === Monthly Chart (Ovqat soni) ===
+            var monthlyMealsData = google.visualization.arrayToDataTable([
+                ['Oy', 'Ovqat soni'],
+                    @foreach($monthlyMealsLabels as $index => $month)
+                ['{{ $month }}', {{ $monthlyMealsData[$index] ?? 0 }}],
+                @endforeach
+            ]);
+            var monthlyMealsOptions = {
+                title: 'Oylik Ovqat soni',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                vAxis: { minValue: 0 },
+                colors: ['#009688'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#ffffff',
+                chartArea: { width: '85%', height: '70%' }
+            };
+            var monthlyMealsChart = new google.visualization.LineChart(document.getElementById('monthly_meals_chart'));
+            monthlyMealsChart.draw(monthlyMealsData, monthlyMealsOptions);
+        }
     </script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            // Backenddan kelgan datasetlar
+            const dailyOlindi  = @json($dailyOlindiData);
+            const dailySotildi = @json($dailySotildiData);
+            const dailyQoldi   = @json($dailyQoldiData);
+
+            const monthlyOlindi  = @json($monthlyOlindiData);
+            const monthlySotildi = @json($monthlySotildiData);
+            const monthlyQoldi   = @json($monthlyQoldiData);
+
+            // === KUNLIK OVQAT GRAFIK ===
+            let dailyData = new google.visualization.DataTable();
+            dailyData.addColumn('string', 'Kun');
+            dailyData.addColumn('number', 'Olindi');
+            dailyData.addColumn('number', 'Sotildi');
+            dailyData.addColumn('number', 'Qoldi');
+
+            for (let i = 0; i < dailyOlindi.length; i++) {
+                dailyData.addRow([
+                    (i+1).toString(),
+                    dailyOlindi[i],
+                    dailySotildi[i],
+                    dailyQoldi[i]
+                ]);
+            }
+
+            let dailyOptions = {
+                // title: '📊 Kundalik Ovqat soni',
+                curveType: 'function',
+                legend: { position: 'bottom', textStyle: {fontSize: 12, bold: true} },
+                colors: ['#1E90FF', '#28A745', '#DC3545'], // Olindi - ko‘k, Sotildi - yashil, Qoldi - qizil
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#f9f9f9',
+                chartArea: {width: '85%', height: '70%'},
+                vAxis: {
+                    gridlines: {color: '#eee'},
+                    minValue: 0,
+                    textStyle: {fontSize: 12}
+                },
+                hAxis: {
+                    textStyle: {fontSize: 12}
+                },
+                tooltip: {isHtml: true}
+            };
+
+            let dailyChart = new google.visualization.LineChart(document.getElementById('daily_order_meals_chart'));
+            dailyChart.draw(dailyData, dailyOptions);
+
+            // === OYLIK OVQAT GRAFIK ===
+            let monthlyData = new google.visualization.DataTable();
+            monthlyData.addColumn('string', 'Oy');
+            monthlyData.addColumn('number', 'Olindi');
+            monthlyData.addColumn('number', 'Sotildi');
+            monthlyData.addColumn('number', 'Qoldi');
+
+            for (let i = 0; i < monthlyOlindi.length; i++) {
+                monthlyData.addRow([
+                    (i+1).toString(),
+                    monthlyOlindi[i],
+                    monthlySotildi[i],
+                    monthlyQoldi[i]
+                ]);
+            }
+
+            let monthlyOptions = {
+                // title: '📅 Oylik Ovqat soni',
+                curveType: 'function',
+                legend: { position: 'bottom', textStyle: {fontSize: 12, bold: true} },
+                colors: ['#1E90FF', '#28A745', '#DC3545'],
+                lineWidth: 3,
+                pointSize: 6,
+                backgroundColor: '#f9f9f9',
+                chartArea: {width: '85%', height: '70%'},
+                vAxis: {
+                    gridlines: {color: '#eee'},
+                    minValue: 0,
+                    textStyle: {fontSize: 12}
+                },
+                hAxis: {
+                    textStyle: {fontSize: 12}
+                },
+                tooltip: {isHtml: true}
+            };
+
+            let monthlyChart = new google.visualization.LineChart(document.getElementById('monthly_order_meals_chart'));
+            monthlyChart.draw(monthlyData, monthlyOptions);
+        }
+    </script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            // === Backenddan kelgan datasetlar ===
+            const dailyCustomers   = @json($dailyClientsData);
+            const dailyLabels      = @json($dailyClientsLabels);
+            const monthlyCustomers = @json($monthlyClientsData);
+            const monthlyLabels    = @json($monthlyClientsLabels);
+
+            // === KUNLIK MIJOZLAR ===
+            let dailyCustData = new google.visualization.DataTable();
+            dailyCustData.addColumn('string', 'Kun');
+            dailyCustData.addColumn('number', 'Yangi mijozlar');
+
+            for (let i = 0; i < dailyCustomers.length; i++) {
+                dailyCustData.addRow([dailyLabels[i], dailyCustomers[i]]);
+            }
+
+            let dailyCustOptions = {
+                title: 'Kundalik mijozlar o‘sishi',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                colors: ['#FF9800'], // orange
+                hAxis: { title: 'Kun' },
+                vAxis: { title: 'Mijozlar soni' },
+                pointSize: 6,
+                backgroundColor: '#fafafa'
+            };
+
+            let dailyCustChart = new google.visualization.LineChart(document.getElementById('daily_customers_chart'));
+            dailyCustChart.draw(dailyCustData, dailyCustOptions);
+
+            // === OYLIK MIJOZLAR ===
+            let monthlyCustData = new google.visualization.DataTable();
+            monthlyCustData.addColumn('string', 'Oy');
+            monthlyCustData.addColumn('number', 'Yangi mijozlar');
+
+            for (let i = 0; i < monthlyCustomers.length; i++) {
+                monthlyCustData.addRow([monthlyLabels[i], monthlyCustomers[i]]);
+            }
+
+            let monthlyCustOptions = {
+                title: 'Oylik mijozlar o‘sishi',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                colors: ['#FF5722'], // deep orange
+                hAxis: { title: 'Oy' },
+                vAxis: { title: 'Mijozlar soni' },
+                pointSize: 6,
+                backgroundColor: '#fafafa'
+            };
+
+            let monthlyCustChart = new google.visualization.LineChart(document.getElementById('monthly_customers_chart'));
+            monthlyCustChart.draw(monthlyCustData, monthlyCustOptions);
+        }
+    </script>
+
 @endsection

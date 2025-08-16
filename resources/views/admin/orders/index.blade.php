@@ -415,14 +415,15 @@
                                     @endphp
 
                                     <input
-                                        type="number"
+                                        type="text"
                                         class="received-amount-input form-control"
-                                        value="{{ $order->received_amount }}"
+                                        value="{{ number_format($order->received_amount, 0, '.', ' ') }}"
                                         style="width: 120px; display: inline-block; {{ $bgColor }}"
-                                        max="{{ $order->total_amount }}"
                                         {{ strtolower($order->customer->type) === 'oylik' ? 'disabled' : '' }}
                                         data-order-id="{{ $order->id }}"
                                     >
+
+
                                 </div>
                             </td>
 

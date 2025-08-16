@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\BalanceHistory;
+use App\Models\DailyMeal;
 
 class CustomersController extends Controller
 {
@@ -48,36 +49,334 @@ class CustomersController extends Controller
     }
 
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $mealCount = Meal::count();
-        $customerCount = Customer::count();
-        $driverCount = Driver::count();
+        $mealCount     = Meal::count();
+        $customerCount      = Customer::count();
+        $monthlyCustomer    = Customer::where('type', 'oylik')->count();
+        $ordinaryCustomer   = Customer::where('type', 'odiy')->count();
 
-        $today = Carbon::today();
+        $orderCount = Order::count();
+        $monthlyAverage = Order::selectRaw('COUNT(*) / COUNT(DISTINCT DATE_FORMAT(order_date, "%Y-%m")) as avg_per_month')
+            ->value('avg_per_month');
+        $monthlyAverage = round($monthlyAverage, 1); // yaxlitlab olish
+
+        // Mijozlar balanslari
+        $monthlyBalance = Customer::where('balance', '>', 0)->sum('balance');
+        $monthlyDebt = Customer::where('balance', '<', 0)->sum('balance');
+
+        // Qarzni musbat ko‘rsatish uchun abs olamiz
+        $monthlyDebt = abs($monthlyDebt);
+
+        // Qarzdor mijozlar soni (balansi manfiy bo‘lganlar)
+        $debtorCount = Customer::where('balance', '<', 0)->count();
+
+// To‘lanmagan buyurtmalar soni (received_amount = 0)
+        $unpaidOrdersCount = Order::where('received_amount', 0)->count();
+
+
+        $today         = Carbon::today();
         $dailySales = Order::whereDate('order_date', $today)->sum('total_amount');
 
-        // Oxirgi 7 kunlik buyurtmalar statistikasi (grafik uchun)
-        $last7Days = collect();
-        $labels = collect();
-        $today = Carbon::today();
+        /*
+         |========================
+         |   DAILY SALES (DAROMAD)
+         |========================
+        */
+        $dailyLabels    = collect();
+        $dailySalesData = collect();
+        $dailyDate      = $request->input('daily_date');
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = $today->copy()->subDays($i);
-            $labels->push($date->format('M d'));
+        if ($dailyDate) {
+            $date  = Carbon::parse($dailyDate);
             $sales = Order::whereDate('order_date', $date)->sum('total_amount');
-            $last7Days->push($sales);
+            $dailyLabels->push($date->format('d M Y'));
+            $dailySalesData->push($sales);
+        } else {
+            for ($i = 6; $i >= 0; $i--) {
+                $date  = $today->copy()->subDays($i);
+                $sales = Order::whereDate('order_date', $date)->sum('total_amount');
+                $dailyLabels->push($date->format('d M'));
+                $dailySalesData->push($sales);
+            }
         }
+
+        /*
+         |========================
+         |   MONTHLY SALES (DAROMAD)
+         |========================
+        */
+        $monthlyLabels    = collect();
+        $monthlySalesData = collect();
+        $startMonth       = $request->input('start_month');
+        $endMonth         = $request->input('end_month');
+
+        $start = $startMonth ? Carbon::parse($startMonth)->startOfMonth() : Carbon::now()->startOfYear();
+        $end   = $endMonth ? Carbon::parse($endMonth)->endOfMonth() : Carbon::now();
+
+        $period = $start->monthsUntil($end->copy()->addMonth());
+        foreach ($period as $month) {
+            $sales = Order::whereYear('order_date', $month->year)
+                ->whereMonth('order_date', $month->month)
+                ->sum('total_amount');
+            $monthlyLabels->push($month->format('F Y'));
+            $monthlySalesData->push($sales);
+        }
+
+        /*
+         |========================
+         |   DAILY ORDERS (BUYURTMALAR)
+         |========================
+        */
+        $dailyOrdersLabels = collect();
+        $dailyOrdersData   = collect();
+        $dailyOrdersDate   = $request->input('daily_orders_date');
+
+        if ($dailyOrdersDate) {
+            $date  = Carbon::parse($dailyOrdersDate);
+            $count = Order::whereDate('order_date', $date)->count();
+            $dailyOrdersLabels->push($date->format('d M Y'));
+            $dailyOrdersData->push($count);
+        } else {
+            for ($i = 6; $i >= 0; $i--) {
+                $date  = $today->copy()->subDays($i);
+                $count = Order::whereDate('order_date', $date)->count();
+                $dailyOrdersLabels->push($date->format('d M'));
+                $dailyOrdersData->push($count);
+            }
+        }
+
+        /*
+         |========================
+         |   MONTHLY ORDERS (BUYURTMALAR)
+         |========================
+        */
+        $monthlyOrdersLabels = collect();
+        $monthlyOrdersData   = collect();
+        $ordersStartMonth    = $request->input('orders_start_month');
+        $ordersEndMonth      = $request->input('orders_end_month');
+
+        $start = $ordersStartMonth ? Carbon::parse($ordersStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
+        $end   = $ordersEndMonth ? Carbon::parse($ordersEndMonth)->endOfMonth() : Carbon::now();
+
+        $period = $start->monthsUntil($end->copy()->addMonth());
+        foreach ($period as $month) {
+            $count = Order::whereYear('order_date', $month->year)
+                ->whereMonth('order_date', $month->month)
+                ->count();
+            $monthlyOrdersLabels->push($month->format('F Y'));
+            $monthlyOrdersData->push($count);
+        }
+
+        /*
+         |========================
+         |   DAILY MEALS (OVQAT QOLDIQ)
+         |========================
+        */
+            $dailyMealsLabels = collect();
+            $dailyMealsData   = collect();
+            $dailyMealsDate   = $request->input('daily_meals_date');
+
+            if ($dailyMealsDate) {
+                $date  = Carbon::parse($dailyMealsDate);
+                $count = DailyMeal::with('items')
+                    ->whereDate('date', $date)
+                    ->get()
+                    ->sum(fn($meal) => $meal->items->sum('pivot.remaining_count'));
+
+                $dailyMealsLabels->push($date->format('d M Y'));
+                $dailyMealsData->push($count);
+            } else {
+                for ($i = 6; $i >= 0; $i--) {
+                    $date  = $today->copy()->subDays($i);
+                    $count = DailyMeal::with('items')
+                        ->whereDate('date', $date)
+                        ->get()
+                        ->sum(fn($meal) => $meal->items->sum('pivot.remaining_count'));
+
+                    $dailyMealsLabels->push($date->format('d M'));
+                    $dailyMealsData->push($count);
+                }
+            }
+
+        /*
+         |========================
+         |   MONTHLY MEALS (OVQAT QOLDIQ)
+         |========================
+        */
+        $monthlyMealsLabels = collect();
+        $monthlyMealsData   = collect();
+        $mealsStartMonth    = $request->input('meals_start_month');
+        $mealsEndMonth      = $request->input('meals_end_month');
+
+        $start = $mealsStartMonth ? Carbon::parse($mealsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
+        $end   = $mealsEndMonth ? Carbon::parse($mealsEndMonth)->endOfMonth() : Carbon::now();
+
+        $period = $start->monthsUntil($end->copy()->addMonth());
+        foreach ($period as $month) {
+            $count = DailyMeal::with('items')
+                ->whereYear('date', $month->year)
+                ->whereMonth('date', $month->month)
+                ->get()
+                ->sum(fn($meal) => $meal->items->sum('pivot.remaining_count'));
+
+            $monthlyMealsLabels->push($month->format('F Y'));
+            $monthlyMealsData->push($count);
+        }
+        /*
+ |========================
+ |   DAILY MEALS (Kunlik)
+ |========================
+*/
+        $dailyOlindiData  = collect(); // ko‘k
+        $dailySotildiData = collect(); // yashil
+        $dailyQoldiData   = collect(); // qizil
+
+        $dailyMealsDate = $request->input('daily_meals_order_date');
+
+        if ($dailyMealsDate) {
+            $date   = Carbon::parse($dailyMealsDate);
+            $meals  = DailyMeal::with('items')->whereDate('date', $date)->get();
+
+            $dailyOlindiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.remaining_count')));
+            $dailySotildiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.sell')));
+            $dailyQoldiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.count')));
+        } else {
+            for ($i = 6; $i >= 0; $i--) {
+                $date  = $today->copy()->subDays($i);
+                $meals = DailyMeal::with('items')->whereDate('date', $date)->get();
+
+                $dailyOlindiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.remaining_count')));
+                $dailySotildiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.sell')));
+                $dailyQoldiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.count')));
+            }
+        }
+
+        /*
+         |========================
+         |   MONTHLY MEALS (Oylik)
+         |========================
+        */
+        $monthlyOlindiData  = collect(); // ko‘k
+        $monthlySotildiData = collect(); // yashil
+        $monthlyQoldiData   = collect(); // qizil
+
+        $mealsStartMonth = $request->input('meals_order_start_month');
+        $mealsEndMonth   = $request->input('meals_order_end_month');
+
+        $start = $mealsStartMonth ? Carbon::parse($mealsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
+        $end   = $mealsEndMonth ? Carbon::parse($mealsEndMonth)->endOfMonth() : Carbon::now();
+
+        $period = $start->monthsUntil($end->copy()->addMonth());
+        foreach ($period as $month) {
+            $meals = DailyMeal::with('items')
+                ->whereYear('date', $month->year)
+                ->whereMonth('date', $month->month)
+                ->get();
+
+            $monthlyOlindiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.remaining_count')));
+            $monthlySotildiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.sell')));
+            $monthlyQoldiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.count')));
+        }
+        /*
+ |========================
+ |   DAILY CLIENTS (Kunlik mijozlar)
+ |========================
+*/
+        $dailyClientsData = collect();
+        $dailyClientsLabels = collect();
+
+        $dailyClientsDate = $request->input('daily_clients_date');
+
+        if ($dailyClientsDate) {
+            $date = Carbon::parse($dailyClientsDate);
+            $dailyClientsData->push(Customer::whereDate('created_at', $date->toDateString())->count());
+            $dailyClientsLabels->push($date->format('d-M'));
+        } else {
+            for ($i = 6; $i >= 0; $i--) {
+                $date = $today->copy()->subDays($i);
+                $dailyClientsData->push(Customer::whereDate('created_at', $date)->count());
+                $dailyClientsLabels->push($date->format('d-M'));
+            }
+        }
+
+        /*
+         |========================
+         |   MONTHLY CLIENTS (Oylik mijozlar)
+         |========================
+        */
+        $monthlyClientsData = collect();
+        $monthlyClientsLabels = collect();
+
+        $clientsStartMonth = $request->input('clients_start_month');
+        $clientsEndMonth   = $request->input('clients_end_month');
+
+        $start = $clientsStartMonth ? Carbon::parse($clientsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
+        $end   = $clientsEndMonth ? Carbon::parse($clientsEndMonth)->endOfMonth() : Carbon::now();
+
+        $period = $start->monthsUntil($end->copy()->addMonth());
+        foreach ($period as $month) {
+            $monthlyClientsData->push(
+                Customer::whereYear('created_at', $month->year)
+                    ->whereMonth('created_at', $month->month)
+                    ->count()
+            );
+            $monthlyClientsLabels->push($month->format('M-Y'));
+        }
+
+
 
         return view('admin.dashboard', compact(
             'mealCount',
+
             'customerCount',
-            'driverCount',
+            'monthlyCustomer',
+            'ordinaryCustomer',
+
+            'orderCount',
+            'monthlyAverage',
+
+            'monthlyBalance',
+            'monthlyDebt',
+
+            'debtorCount',
+            'unpaidOrdersCount',
+
             'dailySales',
-            'labels',
-            'last7Days'
+
+            'dailyLabels',
+            'dailySalesData',
+            'monthlyLabels',
+            'monthlySalesData',
+
+            'dailyOrdersLabels',
+            'dailyOrdersData',
+            'monthlyOrdersLabels',
+            'monthlyOrdersData',
+
+            'dailyMealsLabels',
+            'dailyMealsData',
+            'monthlyMealsLabels',
+            'monthlyMealsData',
+
+            'dailyOlindiData',
+            'dailySotildiData',
+            'dailyQoldiData' ,
+
+            'monthlyOlindiData',
+            'monthlySotildiData',
+            'monthlyQoldiData',
+
+            'dailyClientsData',
+            'dailyClientsLabels',
+
+            'monthlyClientsData',
+            'monthlyClientsLabels',
         ));
     }
+
+
+
 
     public function store(Request $request)
     {

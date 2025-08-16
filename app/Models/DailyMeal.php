@@ -12,6 +12,8 @@ class DailyMeal extends Model
     {
         return $this->belongsToMany(Meal::class, 'daily_meal_items', 'daily_meal_id', 'meal_id')
             ->withPivot('count')
+            ->withPivot('remaining_count')
+            ->withPivot('sell')
             ->withPivot('id')
             ->withTimestamps();
     }

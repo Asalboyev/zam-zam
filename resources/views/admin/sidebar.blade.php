@@ -16,22 +16,21 @@
               <a href="{{ route('admin.orders.all', ['order_date' => now()->format('Y-m-d')]) }}" class="nav-link"><i data-feather="shopping-cart"></i><span>Buyurtmalar </span></a>
           </li>
           <li class="dropdown ">
-              <a href="{{ route('admin.ordinary_debt',['order_date' => now()->format('Y-m-d')]) }}" class="nav-link"><i data-feather="shopping-cart"></i><span> Qarizdorlar </span></a>
+              <a href="{{ route('admin.ordinary_debt',['order_date' => now()->format('Y-m-d')]) }}" class="nav-link"><i data-feather="users"></i><span> Qarzdorlar </span></a>
+          </li>
+
+          <li class="dropdown ">
+              <a href="{{ route('admin.daily_meal.index') }}" class="nav-link"><i data-feather="arrow-up-circle"></i><span>Kunlik maxsulot</span></a>
           </li>
           <li class="dropdown ">
               <a href="{{ route('admin.products.index') }}" class="nav-link"><i data-feather="database"></i><span>Malumotlar</span></a>
           </li>
-          <li class="dropdown ">
-              <a href="{{ route('admin.daily_meal.index') }}" class="nav-link"><i data-feather="arrow-up-circle"></i><span>Kunlik maxsulot</span></a>
-          </li>
-        <li class="dropdown ">
-            <a href="{{ route('admin.customers.index') }}" class="nav-link"><i data-feather="users"></i><span>Mijozlar</span></a>
-         </li>
-          <li class="dropdown ">
-            <a href="{{ route('admin.drivers.index') }}" class="nav-link"><i data-feather="truck"></i><span> Haydovchilar</span></a>
-         </li>
-
-
+{{--        <li class="dropdown ">--}}
+{{--            <a href="{{ route('admin.customers.index') }}" class="nav-link"><i data-feather="users"></i><span>Mijozlar</span></a>--}}
+{{--         </li>--}}
+{{--          <li class="dropdown ">--}}
+{{--            <a href="{{ route('admin.drivers.index') }}" class="nav-link"><i data-feather="truck"></i><span> Haydovchilar</span></a>--}}
+{{--         </li>--}}
       </ul>
     </aside>
   </div>

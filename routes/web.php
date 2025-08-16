@@ -34,6 +34,8 @@ Route::get('/', function ()
 
 Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function(){
     Route::get('dashboard', [CustomersController::class, 'dashboard'])->name('dashboard');
+//    Route::get('dashboard', [\App\Http\Controllers\MainControler::class, 'stats'])->name('dashboard');
+
     Route::get('/orders/indebted-customers', [CustomersController::class, 'indebted_customers'])->name('indebted_customers');
 
     Route::resource('customers', CustomersController::class);

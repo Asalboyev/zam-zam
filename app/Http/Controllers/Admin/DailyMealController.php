@@ -54,6 +54,7 @@ class DailyMealController extends Controller
             'daily_meal_id' => $dailyMeal->id,
             'meal_id' => $request->meal_id,
             'count' => $request->count,
+            'remaining_count' => $request->count,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -95,13 +96,10 @@ class DailyMealController extends Controller
             ->update([
                 'meal_id' => $request->meal_id,
                 'count' => $request->count,
+                'remaining_count' => $request->count,
                 'updated_at' => now(),
             ]);
-
         return redirect()->route('admin.daily_meal.index')->with('success', 'Ovqat muvaffaqiyatli yangilandi.');
     }
-
-
-
 
 }

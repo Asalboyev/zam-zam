@@ -745,13 +745,27 @@ class OrdersController extends Controller
                 ]);
 
                 $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
+
                 foreach ($dailyMeals as $dailyMeal) {
                     foreach ($meals as $mealId => $qty) {
                         $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
+
                         if ($item && $item->pivot) {
                             $currentCount = $item->pivot->count;
-                            $newCount = max(0, $currentCount - intval($qty));
-                            $dailyMeal->items()->updateExistingPivot($mealId, ['count' => $newCount]);
+                            $currentSell  = $item->pivot->sell ?? 0; // sell bo‘sh bo‘lsa 0 qilamiz
+
+                            // kamayadigan miqdor
+                            $decrease = intval($qty);
+
+                            // yangi qiymatlar
+                            $newCount = max(0, $currentCount - $decrease);
+                            $newSell  = $currentSell + $decrease;
+
+                            // pivot jadvalni yangilash
+                            $dailyMeal->items()->updateExistingPivot($mealId, [
+                                'count' => $newCount,
+                                'sell'  => $newSell,
+                            ]);
                         }
                     }
                 }
@@ -1033,14 +1047,22 @@ class OrdersController extends Controller
             $customer->balance -= $total;
             $customer->save();
 
-            // 4️⃣ DailyMeal dan yangi miqdorlarni ayirish
+            // $meals => [meal_id => yangi_qty]
             foreach ($dailyMeals as $dailyMeal) {
-                foreach ($meals as $mealId => $qty) {
-                    if ($mealId && $qty > 0) {
+                foreach ($meals as $mealId => $newQty) {
+                    if ($mealId && $newQty >= 0) {
                         $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
+
                         if ($item && $item->pivot) {
+                            $initialCount = $item->pivot->count + $item->pivot->sell;
+                            // boshlang‘ich umumiy son (qolgan + sotilgan)
+
+                            $updatedCount = max(0, $initialCount - intval($newQty));
+                            $updatedSell  = intval($newQty); // sell = yangi miqdor
+
                             $dailyMeal->items()->updateExistingPivot($mealId, [
-                                'count' => max(0, $item->pivot->count - intval($qty))
+                                'count' => $updatedCount,
+                                'sell'  => $updatedSell,
                             ]);
                         }
                     }

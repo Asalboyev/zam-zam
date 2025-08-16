@@ -21,9 +21,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('daily_meal_id')->constrained()->cascadeOnDelete();
             $table->foreignId('meal_id')->constrained()->cascadeOnDelete();
-            $table->integer('count')->default(1); // count ustuni qo‘shildi
+            $table->integer('count')->default(1); // Umumiy soni
+            $table->integer('remaining_count')->default(1); // Qoldiq soni
+            $table->integer('sell')->default(0); // Qoldiq soni
             $table->timestamps();
         });
+
     }
 
     /**

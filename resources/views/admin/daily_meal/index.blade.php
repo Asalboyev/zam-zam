@@ -19,7 +19,7 @@
         </div>
     @endif
       <div class="card-header">
-        <h4>Tags table</h4>
+        <h4>Kunlik mahsulot</h4>
         <div class="card-header-form">
             @if($dailyMeals->count() < 4)
                 <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Create</a>
@@ -55,6 +55,7 @@
                         <th>#</th>
                         <th>Rasm</th>
                         <th>Ovqat nomi</th>
+                        <th>Olindi</th>
                         <th>Son</th>
                         <th></th>
                     </tr>
@@ -71,6 +72,7 @@
                                         @endif
                                 </td>
                                 <td>{{ $item->name }}</td>
+                                <td>{{ $item->pivot->remaining_count }}</td> {{-- Bu yerda count chiqadi --}}
                                 <td>{{ $item->pivot->count }}</td> {{-- Bu yerda count chiqadi --}}
                                 <td>
                                     <a href="{{ route('admin.daily_meal.edit', $item->pivot->id) }}" class="icon-btn">
@@ -79,10 +81,7 @@
                                 </td>
                             </tr>
                         @endforeach
-
                     @endforeach
-
-
                     </tbody>
                 </table>
             @else

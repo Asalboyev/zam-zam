@@ -10,14 +10,22 @@ class MainControler extends Controller
 {
 
 
-    public function index ()
+    public function stats(Request $request)
     {
+        $from = $request->input('from', '2023-01-01');
+        $to = $request->input('to', now()->format('Y-m-d'));
 
-        $specialPosts = Post::where('is_spacial',1)->limit(6)->latest()->get();
-        $latestPosts = Post::limit(6)->latest()->get();
-        $popularPosts = Post::limit(4)->orderBy('view','DESC')->get();
-        return view('index',compact('specialPosts','latestPosts','popularPosts'));
+        $orders = \DB::table('orders')
+            ->selectRaw('YEAR(order_date) as year, MONTH(order_date) as month, COUNT(*) as total_orders, SUM(total_meals) as total_meals')
+            ->whereBetween('order_date', [$from, $to])
+            ->groupBy('year', 'month')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get();
+
+        return view('admin.dashboard', compact('orders', 'from', 'to'));
     }
+
 
     public function categoryPosts ($slug)
     {
