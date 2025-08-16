@@ -98,13 +98,13 @@
                 <div class="card-body">
                     <ul class="nav nav-pills">
                         <li class="nav-item">
-                            <a class="nav-link active " href="{{ route('admin.ordinary_debt') }}">Odiy Qarizdorlar  <span class="badge badge-white"></span></a>
+                            <a class="nav-link active " href="{{ route('admin.ordinary_debt') }}">Odiy Qarzdorlar  <span class="badge badge-white"></span></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link   " href="{{route('admin.monthly_debtors')}}">Oylik Qarizdorlar  <span class="badge badge-primary"></span></a>
+                            <a class="nav-link   " href="{{route('admin.monthly_debtors')}}">Oylik Qarzdorlar  <span class="badge badge-primary"></span></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link " href="{{ route('admin.indebted_customers') }}">Qarizdor Mijozlar <span class="badge badge-primary"></span></a>
+                            <a class="nav-link " href="{{ route('admin.indebted_customers') }}">Qarzdor Mijozlar <span class="badge badge-primary"></span></a>
 
                     </ul>
                 </div>
