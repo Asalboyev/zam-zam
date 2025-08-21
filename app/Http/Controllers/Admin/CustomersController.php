@@ -134,20 +134,27 @@ class CustomersController extends Controller
         */
         $monthlyLabels    = collect();
         $monthlySalesData = collect();
-        $startMonth       = $request->input('start_month');
-        $endMonth         = $request->input('end_month');
 
-        $start = $startMonth ? Carbon::parse($startMonth)->startOfMonth() : Carbon::now()->startOfYear();
-        $end   = $endMonth ? Carbon::parse($endMonth)->endOfMonth() : Carbon::now();
+// GET parametrlarini olish
+        $startMonth = $request->input('start_month');
+        $endMonth   = $request->input('end_month');
 
+// Agar parametr berilmagan bo'lsa, oxirgi 12 oyni avtomatik olish
+        $end = $endMonth ? Carbon::parse($endMonth)->endOfMonth() : Carbon::now()->endOfMonth();
+        $start = $startMonth ? Carbon::parse($startMonth)->startOfMonth() : $end->copy()->subMonths(12)->startOfMonth(); // oxirgi 12 oy
+
+// Oylar bo'yicha period yaratish
         $period = $start->monthsUntil($end->copy()->addMonth());
+
         foreach ($period as $month) {
             $sales = Order::whereYear('order_date', $month->year)
                 ->whereMonth('order_date', $month->month)
                 ->sum('total_amount');
+
             $monthlyLabels->push($month->format('F Y'));
             $monthlySalesData->push($sales);
         }
+
 
         /*
          |========================
@@ -188,19 +195,28 @@ class CustomersController extends Controller
         */
         $monthlyOrdersLabels = collect();
         $monthlyOrdersData   = collect();
-        $ordersStartMonth    = $request->input('orders_start_month');
-        $ordersEndMonth      = $request->input('orders_end_month');
 
-        $start = $ordersStartMonth ? Carbon::parse($ordersStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
-        $end   = $ordersEndMonth ? Carbon::parse($ordersEndMonth)->endOfMonth() : Carbon::now();
+// Agar foydalanuvchi start/end oy kiritmagan bo'lsa, default oxirgi 12 oy
+        $ordersStartMonth = $request->input('orders_start_month');
+        $ordersEndMonth   = $request->input('orders_end_month');
+
+        $end = $ordersEndMonth
+            ? Carbon::parse($ordersEndMonth)->endOfMonth()
+            : Carbon::now()->endOfMonth();
+
+        $start = $ordersStartMonth
+            ? Carbon::parse($ordersStartMonth)->startOfMonth()
+            : $end->copy()->subMonths(12)->startOfMonth(); // oxirgi 12 oy
 
         $period = $start->monthsUntil($end->copy()->addMonth());
+
         foreach ($period as $month) {
             $count = Order::whereYear('order_date', $month->year)
                 ->whereMonth('order_date', $month->month)
                 ->count();
-            $monthlyOrdersLabels->push($month->format('F Y'));
-            $monthlyOrdersData->push($count);
+
+            $monthlyOrdersLabels->push($month->format('F Y')); // Oyning nomi va yili
+            $monthlyOrdersData->push($count);                  // Oylik buyurtmalar soni
         }
 
         /*
@@ -210,7 +226,17 @@ class CustomersController extends Controller
         */
             $dailyMealsLabels = collect();
             $dailyMealsData   = collect();
-            $dailyMealsDate   = $request->input('daily_meals_date');
+        $dailyMealsDate = $request->input('daily_meals_date');
+
+        if ($dailyMealsDate) {
+            $date = Carbon::parse($dailyMealsDate);
+            $start = $date->startOfMonth();
+            $end   = $date->endOfMonth();
+        } else {
+            // Agar hech narsa tanlanmasa, default qilib shu yilni olish
+            $start = Carbon::now()->startOfYear();
+            $end   = Carbon::now();
+        }
 
         if ($dailyMealsDate) {
             // Tanlangan oyning birinchi va oxirgi sanasini olish
@@ -250,11 +276,23 @@ class CustomersController extends Controller
         */
         $monthlyMealsLabels = collect();
         $monthlyMealsData   = collect();
-        $mealsStartMonth    = $request->input('meals_start_month');
-        $mealsEndMonth      = $request->input('meals_end_month');
+//        $mealsStartMonth    = $request->input('meals_start_month');
+//        $mealsEndMonth      = $request->input('meals_end_month');
+//
+//        $start = $mealsStartMonth ? Carbon::parse($mealsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
+//        $end   = $mealsEndMonth ? Carbon::parse($mealsEndMonth)->endOfMonth() : Carbon::now();
 
-        $start = $mealsStartMonth ? Carbon::parse($mealsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
-        $end   = $mealsEndMonth ? Carbon::parse($mealsEndMonth)->endOfMonth() : Carbon::now();
+
+        $mealsStartMonth = $request->input('meals_start_month');
+        $mealsEndMonth   = $request->input('meals_end_month');
+
+        $start = $mealsStartMonth
+            ? Carbon::parse($mealsStartMonth)->startOfMonth()
+            : Carbon::now()->startOfYear();
+
+        $end = $mealsEndMonth
+            ? Carbon::parse($mealsEndMonth)->endOfMonth()
+            : Carbon::now();
 
         $period = $start->monthsUntil($end->copy()->addMonth());
         foreach ($period as $month) {
@@ -317,8 +355,13 @@ class CustomersController extends Controller
         $mealsStartMonth = $request->input('meals_order_start_month');
         $mealsEndMonth   = $request->input('meals_order_end_month');
 
-        $start = $mealsStartMonth ? Carbon::parse($mealsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
-        $end   = $mealsEndMonth ? Carbon::parse($mealsEndMonth)->endOfMonth() : Carbon::now();
+        $start = $mealsStartMonth
+            ? Carbon::parse($mealsStartMonth)->startOfMonth()
+            : Carbon::now()->startOfYear();
+
+        $end = $mealsEndMonth
+            ? Carbon::parse($mealsEndMonth)->endOfMonth()
+            : Carbon::now();
 
         $period = $start->monthsUntil($end->copy()->addMonth());
         foreach ($period as $month) {
@@ -339,7 +382,7 @@ class CustomersController extends Controller
         $dailyClientsData = collect();
         $dailyClientsLabels = collect();
 
-        $dailyClientsDate = $request->input('daily_clients_date');
+        $dailyClientsDate = $request->input('daily_clients_date', Carbon::now()->format('Y-m'));
 
         if ($dailyClientsDate) {
             // Tanlangan oyning birinchi va oxirgi sanalarini olish
@@ -374,11 +417,17 @@ class CustomersController extends Controller
         $monthlyClientsData = collect();
         $monthlyClientsLabels = collect();
 
+
         $clientsStartMonth = $request->input('clients_start_month');
         $clientsEndMonth   = $request->input('clients_end_month');
 
-        $start = $clientsStartMonth ? Carbon::parse($clientsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
-        $end   = $clientsEndMonth ? Carbon::parse($clientsEndMonth)->endOfMonth() : Carbon::now();
+        $start = $clientsStartMonth
+            ? Carbon::parse($clientsStartMonth)->startOfMonth()
+            : Carbon::now()->subYear()->startOfMonth(); // 12 oy oldin
+
+        $end = $clientsEndMonth
+            ? Carbon::parse($clientsEndMonth)->endOfMonth()
+            : Carbon::now()->endOfMonth(); // hozirgi oy oxiri
 
         $period = $start->monthsUntil($end->copy()->addMonth());
         foreach ($period as $month) {

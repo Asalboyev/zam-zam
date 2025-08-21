@@ -136,20 +136,11 @@
                             <th>Mijoz</th>
                             <th>Telefon</th>
                             <th>Balans</th>
-                            @foreach($meals as $meal)
-                                <th>{{ $meal->name }}</th>
-                            @endforeach
+                            <th>Telegram</th>
                             <th>Jami Ovqat</th>
-                            <th>Cola</th>
-                            <th>Yetkazish (so'm)</th>
-                            <th>Haydovchi</th>
-                            <th>To'lov turi</th>
                             <th>Jami summa</th>
-                            <th>Olingan summa</th>
-                            <th>Buyurtma sanasi</th>
                             <th></th>
-{{--                            <th>Saqlash</th>--}}
-{{--                            <th>Tahrirlash</th>--}}
+
                         </tr>
                         </thead>
                         <tbody>
@@ -174,6 +165,7 @@
                                 <td class="{{ $customer->balance < 0 ? 'text-danger' : '' }}">
                                     {{ number_format($customer->balance, 0, '.', ' ') }}
                                 </td>
+                                <td>{{ $customer->telegram }}</td>
 
                                 @php
                                     // Ovqatlar sonini hisoblash
@@ -193,47 +185,8 @@
                                         }
                                     }
                                 @endphp
-
-                                @foreach($meals as $meal)
-                                    <td>{{ $mealQuantities[$meal->id] > 0 ? $mealQuantities[$meal->id] : '-' }}</td>
-                                @endforeach
                                 <td><strong>{{ $totalMeals }}</strong></td>
-
-                                <td>{{ $customer->lastOrder->cola_quantity ?? '-' }}</td>
-                                <td>{{ isset($customer->lastOrder->delivery_fee) ? number_format($customer->lastOrder->delivery_fee, 0, ',', ' ') : '-' }}</td>
-                                <td>{{ $customer->lastOrder->driver->name ?? '-' }}</td>
-                                <td>
-                                    {{ ucfirst($customer->lastOrder->payment_method ?? '') }}
-                                    @if (($customer->lastOrder->payment_method ?? '') === 'naqt')
-                                        <img src="{{ asset('/img/zam-zam-cash.svg') }}" alt="Nax" width="20">
-                                    @elseif (($customer->lastOrder->payment_method ?? '') === 'karta')
-                                        <img src="{{ asset('/img/card.svg') }}" alt="Card" width="20">
-                                    @endif
-                                </td>
                                 <td><strong>{{ isset($customer->lastOrder->total_amount) ? number_format($customer->lastOrder->total_amount, 0, ',', ' ') : '-' }}</strong></td>
-                                <td>
-                                    <div class="received-amount-wrapper">
-                                        @php
-                                            $bgColor = '';
-                                            if(strtolower($customer->type) === 'oylik') {
-                                                $bgColor = 'color: blue;';
-                                            } elseif (($customer->lastOrder->received_amount ?? 0) < ($customer->lastOrder->total_amount ?? 0)) {
-                                                $bgColor = 'color: red;';
-                                            } elseif (($customer->lastOrder->received_amount ?? 0) == ($customer->lastOrder->total_amount ?? 0)) {
-                                                $bgColor = 'color: green;';
-                                            }
-                                        @endphp
-
-                                        <input type="number" class="received-amount-input form-control"
-                                               value="{{ $customer->lastOrder->received_amount ?? 0 }}"
-                                               style="width: 120px; display: inline-block; {{ $bgColor }}"
-                                               max="{{ $customer->lastOrder->total_amount ?? 0 }}"
-                                            {{ strtolower($customer->type) === 'oylik' ? 'disabled' : '' }}>
-                                    </div>
-                                </td>
-
-                                <td>{{ $customer->lastOrder->order_date ?? '-' }}</td>
-
                                 <td>
                                     <a href="{{ route('admin.customers.edit', $customer->id ) }}" class="icon-btn">
                                         <i class="fas fa-eye"></i>
