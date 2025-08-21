@@ -111,28 +111,34 @@
     @endif
             <div class="card-header">
                 <h4>Mijozlar Ro'yxati</h4>
+
                 <div class="card-header-form">
                     <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">Yaratish</a>
                 </div>
 
       </div>
             <div class="card-body">
-{{--                <div class="card-header">--}}
-{{--                    <h4>Mijozlar </h4>--}}
-{{--                    <div class="card-header-form">--}}
-{{--                        <form>--}}
-{{--                            <div class="input-group">--}}
-{{--                                <input type="text" class="form-control" placeholder="Search">--}}
-{{--                                <div class="input-group-btn">--}}
-{{--                                    <button class="btn btn-primary"><i class="fas fa-search"></i></button>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
-{{--                        </form>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
+                <div class="card-header">
+                    <h4>Mijozlar </h4>
+                    <div class="card-header-action">
+                        <form method="GET" action="{{ route('admin.customers.index') }}">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control"
+                                       placeholder="Search by name, phone, telegram, district or region"
+                                       value="{{ request('search') }}">
+                                <div class="input-group-btn">
+                                    <button class="btn btn-primary"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
                 <div class="card-body p-0">
+
                     <div class="table-responsive">
+
                         <table class="table table-striped">
+
                             <tbody><tr>
                                 <th class="text-center">
                                     ID
@@ -193,7 +199,8 @@
 
       <div class="card-footer text-right">
         <nav class="d-inline-block">
-            {{ $customers->links() }}
+{{--            {{ $customers->links() }}--}}
+            {{ $customers->appends(['search' => request('search')])->links() }}
 
           {{-- <ul class="pagination mb-0">
             <li class="page-item disabled">

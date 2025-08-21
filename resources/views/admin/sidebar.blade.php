@@ -25,9 +25,9 @@
           <li class="dropdown ">
               <a href="{{ route('admin.products.index') }}" class="nav-link"><i data-feather="database"></i><span>Malumotlar</span></a>
           </li>
-{{--        <li class="dropdown ">--}}
-{{--            <a href="{{ route('admin.customers.index') }}" class="nav-link"><i data-feather="users"></i><span>Mijozlar</span></a>--}}
-{{--         </li>--}}
+        <li class="dropdown ">
+            <a href="{{ route('admin.customers.index') }}" class="nav-link"><i data-feather="users"></i><span>Mijozlar</span></a>
+         </li>
 {{--          <li class="dropdown ">--}}
 {{--            <a href="{{ route('admin.drivers.index') }}" class="nav-link"><i data-feather="truck"></i><span> Haydovchilar</span></a>--}}
 {{--         </li>--}}

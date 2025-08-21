@@ -22,7 +22,7 @@
         <h4>Kunlik mahsulot</h4>
         <div class="card-header-form">
             @if($dailyMeals->count() < 4)
-                <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Create</a>
+                <a href="{{ route('admin.daily_meal.create') }}" class="btn btn-primary">Qo'shish</a>
             @endif
         </div>
 

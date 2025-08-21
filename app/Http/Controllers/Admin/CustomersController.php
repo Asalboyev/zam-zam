@@ -16,12 +16,27 @@ use App\Models\DailyMeal;
 
 class CustomersController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::latest()
+        $search = $request->input('search');
+
+        $customers = Customer::when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('telegram', 'like', "%{$search}%")
+                    ->orWhere('district', 'like', "%{$search}%")
+                    ->orWhereHas('region', function ($r) use ($search) {
+                        $r->where('name', 'like', "%{$search}%");
+                    });
+            });
+        })
+            ->latest()
             ->paginate(12);
-        return view('admin.customers.index', compact('customers'));
+
+        return view('admin.customers.index', compact('customers', 'search'));
     }
+
 
     public function indebted_customers()
     {
@@ -88,18 +103,29 @@ class CustomersController extends Controller
         $dailyDate      = $request->input('daily_date');
 
         if ($dailyDate) {
-            $date  = Carbon::parse($dailyDate);
-            $sales = Order::whereDate('order_date', $date)->sum('total_amount');
-            $dailyLabels->push($date->format('d M Y'));
-            $dailySalesData->push($sales);
+            // Oyni aniqlash
+            $startOfMonth = Carbon::parse($dailyDate)->startOfMonth();
+            $endOfMonth   = Carbon::parse($dailyDate)->endOfMonth();
+
+            // Har bir kunni olish
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $sales = Order::whereDate('order_date', $date)->sum('total_amount');
+                $dailyLabels->push($date->format('d M')); // Masalan, "01 Aug"
+                $dailySalesData->push($sales);
+            }
         } else {
-            for ($i = 6; $i >= 0; $i--) {
-                $date  = $today->copy()->subDays($i);
+            // Agar oy tanlanmagan bo‘lsa, joriy oyning kunlarini chiqarish
+            $today = Carbon::today();
+            $startOfMonth = $today->copy()->startOfMonth();
+            $endOfMonth   = $today->copy()->endOfMonth();
+
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $sales = Order::whereDate('order_date', $date)->sum('total_amount');
                 $dailyLabels->push($date->format('d M'));
                 $dailySalesData->push($sales);
             }
         }
+
 
         /*
          |========================
@@ -133,13 +159,22 @@ class CustomersController extends Controller
         $dailyOrdersDate   = $request->input('daily_orders_date');
 
         if ($dailyOrdersDate) {
-            $date  = Carbon::parse($dailyOrdersDate);
-            $count = Order::whereDate('order_date', $date)->count();
-            $dailyOrdersLabels->push($date->format('d M Y'));
-            $dailyOrdersData->push($count);
+            // Tanlangan oyning birinchi va oxirgi kunlarini olish
+            $startOfMonth = Carbon::parse($dailyOrdersDate)->startOfMonth();
+            $endOfMonth   = Carbon::parse($dailyOrdersDate)->endOfMonth();
+
+            // Har bir kunni aylantirib chiqamiz
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $count = Order::whereDate('order_date', $date)->count();
+                $dailyOrdersLabels->push($date->format('d M')); // Masalan: 01 Aug
+                $dailyOrdersData->push($count);
+            }
         } else {
-            for ($i = 6; $i >= 0; $i--) {
-                $date  = $today->copy()->subDays($i);
+            // Agar sana tanlanmagan bo‘lsa, joriy oyning kunlarini chiqarish
+            $startOfMonth = $today->copy()->startOfMonth();
+            $endOfMonth   = $today->copy()->endOfMonth();
+
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $count = Order::whereDate('order_date', $date)->count();
                 $dailyOrdersLabels->push($date->format('d M'));
                 $dailyOrdersData->push($count);
@@ -177,27 +212,36 @@ class CustomersController extends Controller
             $dailyMealsData   = collect();
             $dailyMealsDate   = $request->input('daily_meals_date');
 
-            if ($dailyMealsDate) {
-                $date  = Carbon::parse($dailyMealsDate);
+        if ($dailyMealsDate) {
+            // Tanlangan oyning birinchi va oxirgi sanasini olish
+            $startOfMonth = Carbon::parse($dailyMealsDate)->startOfMonth();
+            $endOfMonth   = Carbon::parse($dailyMealsDate)->endOfMonth();
+
+            // Har bir kun bo'yicha hisoblash
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $count = DailyMeal::with('items')
                     ->whereDate('date', $date)
                     ->get()
                     ->sum(fn($meal) => $meal->items->sum('pivot.remaining_count'));
 
-                $dailyMealsLabels->push($date->format('d M Y'));
+                $dailyMealsLabels->push($date->format('d M')); // Masalan: 01 Aug
                 $dailyMealsData->push($count);
-            } else {
-                for ($i = 6; $i >= 0; $i--) {
-                    $date  = $today->copy()->subDays($i);
-                    $count = DailyMeal::with('items')
-                        ->whereDate('date', $date)
-                        ->get()
-                        ->sum(fn($meal) => $meal->items->sum('pivot.remaining_count'));
-
-                    $dailyMealsLabels->push($date->format('d M'));
-                    $dailyMealsData->push($count);
-                }
             }
+        } else {
+            // Agar sana tanlanmagan bo'lsa, joriy oyning kunlarini chiqarish
+            $startOfMonth = $today->copy()->startOfMonth();
+            $endOfMonth   = $today->copy()->endOfMonth();
+
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $count = DailyMeal::with('items')
+                    ->whereDate('date', $date)
+                    ->get()
+                    ->sum(fn($meal) => $meal->items->sum('pivot.remaining_count'));
+
+                $dailyMealsLabels->push($date->format('d M'));
+                $dailyMealsData->push($count);
+            }
+        }
 
         /*
          |========================
@@ -235,15 +279,24 @@ class CustomersController extends Controller
         $dailyMealsDate = $request->input('daily_meals_order_date');
 
         if ($dailyMealsDate) {
-            $date   = Carbon::parse($dailyMealsDate);
-            $meals  = DailyMeal::with('items')->whereDate('date', $date)->get();
+            // Tanlangan oyning birinchi va oxirgi sanalarini olish
+            $startOfMonth = Carbon::parse($dailyMealsDate)->startOfMonth();
+            $endOfMonth   = Carbon::parse($dailyMealsDate)->endOfMonth();
 
-            $dailyOlindiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.remaining_count')));
-            $dailySotildiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.sell')));
-            $dailyQoldiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.count')));
+            // Shu oyning barcha kunlarini aylantirish
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $meals = DailyMeal::with('items')->whereDate('date', $date)->get();
+
+                $dailyOlindiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.remaining_count')));
+                $dailySotildiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.sell')));
+                $dailyQoldiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.count')));
+            }
         } else {
-            for ($i = 6; $i >= 0; $i--) {
-                $date  = $today->copy()->subDays($i);
+            // Agar sana tanlanmagan bo'lsa, joriy oyning barcha kunlarini chiqarish
+            $startOfMonth = $today->copy()->startOfMonth();
+            $endOfMonth   = $today->copy()->endOfMonth();
+
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $meals = DailyMeal::with('items')->whereDate('date', $date)->get();
 
                 $dailyOlindiData->push($meals->sum(fn($meal) => $meal->items->sum('pivot.remaining_count')));
@@ -289,13 +342,26 @@ class CustomersController extends Controller
         $dailyClientsDate = $request->input('daily_clients_date');
 
         if ($dailyClientsDate) {
-            $date = Carbon::parse($dailyClientsDate);
-            $dailyClientsData->push(Customer::whereDate('created_at', $date->toDateString())->count());
-            $dailyClientsLabels->push($date->format('d-M'));
+            // Tanlangan oyning birinchi va oxirgi sanalarini olish
+            $startOfMonth = Carbon::parse($dailyClientsDate)->startOfMonth();
+            $endOfMonth   = Carbon::parse($dailyClientsDate)->endOfMonth();
+
+            // Shu oyning barcha kunlari bo'yicha ma'lumotlarni olish
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $count = Customer::whereDate('created_at', $date->toDateString())->count();
+
+                $dailyClientsData->push($count);
+                $dailyClientsLabels->push($date->format('d-M')); // Masalan: 01-Aug
+            }
         } else {
-            for ($i = 6; $i >= 0; $i--) {
-                $date = $today->copy()->subDays($i);
-                $dailyClientsData->push(Customer::whereDate('created_at', $date)->count());
+            // Agar sana tanlanmagan bo'lsa, joriy oyning barcha kunlarini chiqarish
+            $startOfMonth = $today->copy()->startOfMonth();
+            $endOfMonth   = $today->copy()->endOfMonth();
+
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $count = Customer::whereDate('created_at', $date->toDateString())->count();
+
+                $dailyClientsData->push($count);
                 $dailyClientsLabels->push($date->format('d-M'));
             }
         }

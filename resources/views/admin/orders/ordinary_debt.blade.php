@@ -105,13 +105,11 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link " href="{{ route('admin.indebted_customers') }}">Qarzdor Mijozlar <span class="badge badge-primary"></span></a>
-
                     </ul>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="col-19 col-md-19 col-lg-19">
 
         @if(isset($latestOrders) && count($latestOrders) > 0)
@@ -145,7 +143,6 @@
                             <th style="width: 50px">data</th>
                             <th></th>
                             <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
-
                         </tr>
                         </thead>
                         <tbody>
@@ -237,7 +234,6 @@
                                 <td class="edit-received-amount" style="width: 56px">
                                     <a href="{{route('admin.orders.edit',$order->id)}}"><img src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;"></a>
                                 </td>
-
                             </tr>
                         @endforeach
                         </tbody>
@@ -292,11 +288,9 @@
             // remove spaces and commas, convert to float
             return parseFloat(value.toString().replace(/[\s,]/g, '')) || 0;
         }
-
         function updateRowCalculations(row) {
             let totalMeals = 0;
             let totalSum = 0;
-
             // Hisob ovqatlar uchun
             row.querySelectorAll(".meal-input").forEach(input => {
                 const count = parseNumber(input.value);
@@ -304,7 +298,6 @@
                 totalMeals += count;
                 totalSum += count * price;
             });
-
             // Cola hisoblash
             const colaInput = row.querySelector(".cola-input");
             const colaCount = parseNumber(colaInput.value);
@@ -354,7 +347,6 @@
             });
         });
     </script>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const rows = document.querySelectorAll("tr");

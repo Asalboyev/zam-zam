@@ -3,7 +3,90 @@
 @section('title', 'Boshqaruv Paneli')
 
 @section('css')
+    <style>
+        /* === Umumiy dizayn === */
+        .card {
+            border-radius: 12px;
+            background-color: #fff;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 15px;
+        }
+
+        .card-body {
+            padding: 15px;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* === Chartlar uchun moslashuvchan o'lchamlar === */
+        #monthly_chart,
+        #daily_chart,
+        #monthly_orders_chart,
+        #daily_orders_chart,
+        #monthly_meals_chart,
+        #daily_meals_chart,
+        #monthly_order_meals_chart,
+        #daily_order_meals_chart,
+        #monthly_customers_chart,
+        #daily_customers_chart {
+            width: 100% !important;
+            min-width: 300px;
+            height: 450px !important;
+            max-height: 500px;
+        }
+
+        /* === Grid ustunlarining moslashuvchanligi === */
+        .col-md-6 {
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* Kichik ekranlar uchun — har bir chart to'liq kenglikda chiqadi */
+        @media (max-width: 1200px) {
+            .col-md-6 {
+                width: 100% !important;
+            }
+        }
+
+        /* Mobil uchun — kartalar o'rtasida bo'sh joy va balandlikni kamaytirish */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 10px;
+            }
+            #monthly_chart,
+            #daily_chart,
+            #monthly_orders_chart,
+            #daily_orders_chart,
+            #monthly_meals_chart,
+            #daily_meals_chart,
+            #monthly_order_meals_chart,
+            #daily_order_meals_chart,
+            #monthly_customers_chart,
+            #daily_customers_chart {
+                height: 350px !important;
+            }
+        }
+
+        /* Juda kichik ekranlar (masalan, telefonlar 480px dan kichik) */
+        @media (max-width: 480px) {
+            .card-header h5 {
+                font-size: 1rem;
+            }
+            .card-body {
+                padding: 8px;
+            }
+        }
+    </style>
 @endsection
+
 
 @section('content')
 
@@ -13,7 +96,7 @@
 
             <div class="col-md-3">
                 <div class="card bg-white text-dark mb-3 shadow-sm">
-                    <div class="card-header">Mijozlar</div>
+                    <h5 class="card-header">Mijozlar</h5>
                     <div class="card-body">
                         <p class="card-text mb-1">Umumiy: <strong>{{ $customerCount }}</strong></p>
                         <p class="card-text mb-1">Oddiy: <strong>{{ $ordinaryCustomer }}</strong></p>
@@ -24,7 +107,7 @@
 
             <div class="col-md-3">
                 <div class="card bg-white text-dark mb-3 shadow-sm">
-                    <div class="card-header">Buyurtmalar</div>
+                    <h5 class="card-header">Buyurtmalar</h5>
                     <div class="card-body">
                         <p class="card-text mb-1">Umumiy: <strong>{{ $orderCount }}</strong></p>
                         <p class="card-text mb-0">Oylik o‘rtacha: <strong>{{ $monthlyAverage }}</strong></p>
@@ -34,7 +117,7 @@
 
             <div class="col-md-3">
                 <div class="card bg-white text-dark mb-3 shadow-sm">
-                    <div class="card-header">Moliya</div>
+                    <h5 class="card-header">Moliya</h5>
                     <div class="card-body">
                         <p class="card-text mb-1">Oylik mijozlar balansi:
                             <strong style="color: #3C4BDC">{{ number_format($monthlyBalance, 0, '.', ' ') }}</strong>
@@ -48,7 +131,7 @@
 
             <div class="col-md-3">
                 <div class="card bg-white text-dark mb-3 shadow-sm">
-                    <div class="card-header">Qarzdorlik</div>
+                    <h5 class="card-header">Qarzdorlik</h5>
                     <div class="card-body">
                         <p class="card-text mb-1">Qarzdorlar: <strong>{{ $debtorCount }}</strong></p>
                         <p class="card-text mb-1">To‘lanmagan buyurtmalar soni: <strong>{{ $unpaidOrdersCount }}</strong></p>
@@ -60,22 +143,6 @@
             </div>
             {{-- Kunlik Daromad --}}
             <div class="row">
-                {{-- Kundalik Daromad --}}
-                <div class="col-md-6">
-                    <div class="card shadow-lg p-3 mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5>Kundalik Daromad</h5>
-                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
-                                <input type="date" name="daily_date" value="{{ request('daily_date') }}" class="form-control">
-                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                            </form>
-                        </div>
-                        <div class="card-body">
-                            <div id="daily_chart" style="height: 300px;"></div>
-                        </div>
-                    </div>
-                </div>
-
                 {{-- Oylik Daromad --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
@@ -88,27 +155,26 @@
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="monthly_chart" style="height: 300px;"></div>
+                            <div id="monthly_chart" style="height: 450px; width:100%;"></div>
                         </div>
                     </div>
                 </div>
-
-                {{-- Kundalik Buyurtmalar soni --}}
+                {{-- Kundalik Daromad --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5>Kundalik Buyurtmalar soni</h5>
+                            <h5>Kundalik Daromad</h5>
                             <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
-                                <input type="date" name="daily_orders_date" value="{{ request('daily_orders_date') }}" class="form-control">
+                                <input type="month" name="daily_date" value="{{ request('daily_date') }}" class="form-control">
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="daily_orders_chart" style="height: 300px;"></div>
+                            <div id="daily_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
-
+                {{-- Kundalik Buyurtmalar soni --}}
                 {{-- Oylik Buyurtmalar soni --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
@@ -121,27 +187,24 @@
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="monthly_orders_chart" style="height: 300px;"></div>
+                            <div id="monthly_orders_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
-
-                {{-- Kundalik Ovqat soni --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5>Kundalik Ovqat soni</h5>
+                            <h5>Kundalik Buyurtmalar soni</h5>
                             <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
-                                <input type="date" name="daily_meals_date" value="{{ request('daily_meals_date') }}" class="form-control">
+                                <input type="month" name="daily_orders_date" value="{{ request('daily_orders_date') }}" class="form-control">
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="daily_meals_chart" style="height: 300px;"></div>
+                            <div id="daily_orders_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
-
                 {{-- Oylik Ovqat soni --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
@@ -154,23 +217,22 @@
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="monthly_meals_chart" style="height: 300px;"></div>
+                            <div id="monthly_meals_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
-
                 {{-- Kundalik Ovqat soni --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5>Kundalik Oldi-Sotdi</h5>
+                            <h5>Kundalik Ovqat soni</h5>
                             <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
-                                <input type="date" name="daily_meals_order_date" value="{{ request('daily_meals_order_date') }}" class="form-control">
+                                <input type="month" name="daily_meals_date" value="{{ request('daily_meals_date') }}" class="form-control">
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="daily_order_meals_chart" style="height: 300px;"></div>
+                            <div id="daily_meals_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
@@ -187,23 +249,22 @@
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="monthly_order_meals_chart" style="height: 300px;"></div>
+                            <div id="monthly_order_meals_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
-
-                {{-- Kundalik mijozlar soni --}}
+                {{-- Kundalik Ovqat soni --}}
                 <div class="col-md-6">
                     <div class="card shadow-lg p-3 mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5>Kundalik Mijozlar o‘sishi</h5>
+                            <h5>Kundalik Oldi-Sotdi</h5>
                             <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
-                                <input type="date" name="daily_clients_date" value="{{ request('daily_clients_date') }}" class="form-control">
+                                <input type="month" name="daily_meals_order_date" value="{{ request('daily_meals_order_date') }}" class="form-control">
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="daily_customers_chart" style="height: 300px;"></div>
+                            <div id="daily_order_meals_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
@@ -220,10 +281,29 @@
                             </form>
                         </div>
                         <div class="card-body">
-                            <div id="monthly_customers_chart" style="height: 300px;"></div>
+                            <div id="monthly_customers_chart" style="height: 450px;"></div>
                         </div>
                     </div>
                 </div>
+
+
+                {{-- Kundalik mijozlar soni --}}
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-3 mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Kundalik Mijozlar o‘sishi</h5>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
+                                <input type="month" name="daily_clients_date" value="{{ request('daily_clients_date') }}" class="form-control">
+                                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <div id="daily_customers_chart" style="height: 400px;"></div>
+
+                        </div>
+                    </div>
+                </div>
+
 
             </div>
         </div>

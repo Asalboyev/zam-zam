@@ -753,27 +753,19 @@
                                     "Content-Type": "application/json",
                                     "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
                                 },
-                                body: JSON.stringify({received_amount: newAmount})
+                                body: JSON.stringify({ received_amount: newAmount })
                             })
                                 .then(res => res.json())
                                 .then(data => {
                                     if (data.success) {
-                                        displayAmount.textContent = `${parseInt(newAmount).toLocaleString('ru-RU')} so‘m`;
-
-                                        if (data.customer_type && data.customer_type.toLowerCase() === 'oylik') {
-                                            displayAmount.style.color = 'blue';
-                                        } else {
-                                            displayAmount.style.color = parseInt(newAmount) < data.total_amount
-                                                ? 'red'
-                                                : (parseInt(newAmount) === data.total_amount ? 'green' : 'black');
-                                        }
+                                        // Sahifani yangilash
+                                        location.reload();
                                     } else {
                                         console.warn("Xatolik:", data.message || "Ma'lumot saqlanmadi.");
                                     }
                                 })
                                 .catch(err => {
                                     console.error("Server bilan ulanishda xatolik:", err);
-                                    // alert chiqarilmaydi
                                 });
                         });
                     });

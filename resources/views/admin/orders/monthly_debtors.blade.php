@@ -74,6 +74,28 @@
                 width: 100%;
             }
         }
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border: 2px solid #dcdce6;
+            border-radius: 12px;
+            background-color: white;
+            color: #2f2f41;
+            font-size: 20px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            background-color: #f0f0f5;
+            color: #000;
+            border-color: #b4b4cc;
+        }
+
 
     </style>
 @endsection
@@ -108,7 +130,27 @@
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0 customTable">
                         <thead>
-                        <!-- sarlavhalar -->
+                        <tr>
+                            <th>ID</th>
+                            <th>Buyurtma №</th>
+                            <th>Mijoz</th>
+                            <th>Telefon</th>
+                            <th>Balans</th>
+                            @foreach($meals as $meal)
+                                <th>{{ $meal->name }}</th>
+                            @endforeach
+                            <th>Jami Ovqat</th>
+                            <th>Cola</th>
+                            <th>Yetkazish (so'm)</th>
+                            <th>Haydovchi</th>
+                            <th>To'lov turi</th>
+                            <th>Jami summa</th>
+                            <th>Olingan summa</th>
+                            <th>Buyurtma sanasi</th>
+                            <th></th>
+{{--                            <th>Saqlash</th>--}}
+{{--                            <th>Tahrirlash</th>--}}
+                        </tr>
                         </thead>
                         <tbody>
                         @foreach($customers as $customer)
@@ -193,15 +235,8 @@
                                 <td>{{ $customer->lastOrder->order_date ?? '-' }}</td>
 
                                 <td>
-                                    <button class="btn btn-sm btn-success save-received-amount"
-                                            data-order-id="{{ $customer->lastOrder->id ?? '' }}"
-                                        {{ strtolower($customer->type) === 'oylik' ? 'disabled' : '' }}>
-                                        <i class="fa fa-check"></i>
-                                    </button>
-                                </td>
-                                <td>
-                                    <a href="{{ route('admin.orders.edit', $customer->lastOrder->id ?? '') }}">
-                                        <img src="{{ asset('/img/pencil.svg') }}" style="cursor: pointer;">
+                                    <a href="{{ route('admin.customers.edit', $customer->id ) }}" class="icon-btn">
+                                        <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
                             </tr>

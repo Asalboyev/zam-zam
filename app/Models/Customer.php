@@ -46,6 +46,10 @@ class Customer extends Model
             ->where('id', $this->region_id)
             ->first();
     }
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
     public function customers()
     {
         return $this->hasMany(Customer::class);
