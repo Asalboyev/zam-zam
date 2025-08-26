@@ -28,7 +28,11 @@
                     <h4>Kunlik Maxsulot</h4>
                 </div>
                 <div class="card-body">
-                    <input type="hidden" name="date" value="{{ request('order_date', now()->format('Y-m-d')) }}">
+                    <div class="form-group">
+                        <label>Soni</label>
+                        <input class="form-control" type="date" name="date" value="{{  request('order_date', now()->format('Y-m-d')), old('date', isset($item->date) ? $item->date : '')  }}">
+
+                    </div>
                     <div class="form-group">
                         <label>Ovqat nomi</label>
                         <select class="form-control select2" name="meal_id" required>

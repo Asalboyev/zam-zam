@@ -132,7 +132,7 @@
                         <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Buyurtma №</th>
+                            <th> №</th>
                             <th>Mijoz</th>
                             <th>Telefon</th>
                             <th>Balans</th>

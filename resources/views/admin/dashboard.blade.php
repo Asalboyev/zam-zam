@@ -152,6 +152,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5>Oylik Daromad</h5>
 
+
                             <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-2">
                                 <input type="month"
                                        name="start_month"
@@ -166,6 +167,8 @@
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
+                        <h6>Umumiy: {{number_format($monthSalestotal, 2, '.', ' ') }} som</h6>
+
                         <div class="card-body">
                             <div id="monthly_chart" style="height: 450px; width:100%;"></div>
                         </div>
@@ -184,6 +187,9 @@
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
+                        <h6>Umumiy: {{number_format($dailySalestotal, 2, '.', ' ') }} som</h6>
+
+
                         <div class="card-body">
                             <div id="daily_chart" style="height: 450px;"></div>
                         </div>
@@ -210,6 +216,8 @@
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
+                        <h6>Umumiy: {{$totalOrders}} ta</h6>
+
                         <div class="card-body">
                             <div id="monthly_orders_chart" style="height: 450px;"></div>
                         </div>
@@ -227,6 +235,8 @@
                                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                             </form>
                         </div>
+                        <h6>Umumiy: {{$dailytotalOrders}} ta</h6>
+
                         <div class="card-body">
                             <div id="daily_orders_chart" style="height: 450px;"></div>
                         </div>
@@ -252,6 +262,8 @@
                             </form>
 
                         </div>
+                        <h6>Umumiy: {{$monthlyMealsCount}} ta</h6>
+
                         <div class="card-body">
                             <div id="monthly_meals_chart" style="height: 450px;"></div>
                         </div>
@@ -270,6 +282,8 @@
                             </form>
 
                         </div>
+                        <h6>Umumiy: {{$dailyMealsTotal}} ta</h6>
+
                         <div class="card-body">
                             <div id="daily_meals_chart" style="height: 450px;"></div>
                         </div>

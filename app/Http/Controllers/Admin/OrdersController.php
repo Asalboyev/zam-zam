@@ -266,64 +266,168 @@ class OrdersController extends Controller
     }
 
 
+//    public function index(Request $request)
+//    {
+//        $date = $request->input('order_date', now()->format('Y-m-d'));
+////        $customers = Customer::with(['lastOrder.driver'])->get();
+//
+//        $customers = Customer::with(['lastOrder.driver'])->get();
+//        $drivers = Driver::where('is_active', true)->get();
+//
+//        // Bugungi orderlar
+//        $latestOrders = Order::with(['customer', 'meal1', 'meal2', 'meal3', 'meal4', 'driver'])
+//            ->where('order_date', $date)
+//            ->orderBy('created_at', 'desc')
+//            ->take(50)
+//            ->get();
+//
+//        // Umumiy mijoz va haydovchi summalari
+//        $customerTotal = $latestOrders->sum('total_amount');
+//        $driverTotal = $latestOrders->sum('received_amount');
+//
+//        // Plan - payment_type bo‘yicha
+//        $planByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
+//            return $group->sum('total_amount');
+//        });
+//
+//        // Fakt - payment_type bo‘yicha
+//        $factByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
+//            return $group->sum('received_amount');
+//        });
+//
+//        // ✅ Plan (payment_method bo‘yicha - customer_price)
+//        $planByMethod = $latestOrders->groupBy('payment_method')->map(function ($group) {
+//            return $group->sum('total_amount');
+//        });
+//
+//        // ✅ Fakt (payment_method bo‘yicha - received_amount)
+//        $factByMethod = $latestOrders->groupBy('payment_method')->map(function ($group) {
+//            return $group->sum('received_amount');
+//        });
+//
+//        // Bugungi DailyMeal'lar (itemlar bilan birga)
+//        $dailyMeals = DailyMeal::with('items')->where('date', $date)->get();
+//
+//        // Barcha itemlar kolleksiyasi
+//        $meals = $dailyMeals->flatMap(function ($dailyMeal) {
+//            return $dailyMeal->items;
+//        })->groupBy('id')->map(function ($groupedItems) {
+//            $meal = $groupedItems->first();
+//            $totalCount = $groupedItems->sum(function ($item) {
+//                return $item->pivot->count ?? 0;
+//            });
+//
+//            $meal->total_count = $totalCount;
+//            return $meal;
+//        })->values();
+//
+//        // Har bir ovqat bo‘yicha statistikani tayyorlash
+//        $mealStats = [];
+//
+//        foreach ($dailyMeals as $dailyMeal) {
+//            foreach ($dailyMeal->items as $item) {
+//                $orderedCount = $latestOrders->filter(function ($order) use ($item) {
+//                    return in_array($item->id, [
+//                        $order->meal_1_id,
+//                        $order->meal_2_id,
+//                        $order->meal_3_id,
+//                        $order->meal_4_id
+//                    ]);
+//                })->count();
+//
+//                if (!isset($mealStats[$item->id])) {
+//                    $mealStats[$item->id] = [
+//                        'meal_name' => $item->name,
+//                        'initial_count' => $item->pivot->count,
+//                        'ordered_count' => $orderedCount,
+//                        'remaining' => $item->pivot->count - $orderedCount,
+//                    ];
+//                } else {
+//                    $mealStats[$item->id]['initial_count'] += $item->pivot->count;
+//                    $mealStats[$item->id]['ordered_count'] += $orderedCount;
+//                    $mealStats[$item->id]['remaining'] = $mealStats[$item->id]['initial_count'] - $mealStats[$item->id]['ordered_count'];
+//                }
+//            }
+//        }
+//
+//        return view('admin.orders.index', compact(
+//            'date',
+//            'customers',
+//            'drivers',
+//            'dailyMeals',
+//            'meals',
+//            'mealStats',
+//            'latestOrders',
+//            'customerTotal',
+//            'driverTotal',
+//            'planByPaymentType',
+//            'factByPaymentType',
+//            'planByMethod',    // ✅ YANGI
+//            'factByMethod'     // ✅ YANGI
+//        ));
+//    }
+
     public function index(Request $request)
     {
+        // 📅 Tanlangan sana (default: bugungi sana)
         $date = $request->input('order_date', now()->format('Y-m-d'));
-//        $customers = Customer::with(['lastOrder.driver'])->get();
 
+        // 👥 Mijozlar va oxirgi buyurtma bilan
         $customers = Customer::with(['lastOrder.driver'])->get();
+
+        // 🚖 Aktiv haydovchilar
         $drivers = Driver::where('is_active', true)->get();
 
-        // Bugungi orderlar
+        // 🛒 Tanlangan sana bo‘yicha buyurtmalar
         $latestOrders = Order::with(['customer', 'meal1', 'meal2', 'meal3', 'meal4', 'driver'])
             ->where('order_date', $date)
             ->orderBy('created_at', 'desc')
             ->take(50)
             ->get();
 
-        // Umumiy mijoz va haydovchi summalari
+        // 💰 Umumiy summalar
         $customerTotal = $latestOrders->sum('total_amount');
-        $driverTotal = $latestOrders->sum('received_amount');
+        $driverTotal   = $latestOrders->sum('received_amount');
 
-        // Plan - payment_type bo‘yicha
-        $planByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
-            return $group->sum('total_amount');
-        });
+        // 📊 Plan va Fakt summalari (payment_type bo‘yicha)
+        $planByPaymentType = $latestOrders->groupBy('payment_type')->map->sum('total_amount');
+        $factByPaymentType = $latestOrders->groupBy('payment_type')->map->sum('received_amount');
 
-        // Fakt - payment_type bo‘yicha
-        $factByPaymentType = $latestOrders->groupBy('payment_type')->map(function ($group) {
-            return $group->sum('received_amount');
-        });
+        // 📊 Plan va Fakt summalari (payment_method bo‘yicha)
+        $planByMethod = $latestOrders->groupBy('payment_method')->map->sum('total_amount');
+        $factByMethod = $latestOrders->groupBy('payment_method')->map->sum('received_amount');
 
-        // ✅ Plan (payment_method bo‘yicha - customer_price)
-        $planByMethod = $latestOrders->groupBy('payment_method')->map(function ($group) {
-            return $group->sum('total_amount');
-        });
-
-        // ✅ Fakt (payment_method bo‘yicha - received_amount)
-        $factByMethod = $latestOrders->groupBy('payment_method')->map(function ($group) {
-            return $group->sum('received_amount');
-        });
-
-        // Bugungi DailyMeal'lar (itemlar bilan birga)
+        // 🍽 Tanlangan sana uchun DailyMeals
         $dailyMeals = DailyMeal::with('items')->where('date', $date)->get();
 
-        // Barcha itemlar kolleksiyasi
-        $meals = $dailyMeals->flatMap(function ($dailyMeal) {
-            return $dailyMeal->items;
-        })->groupBy('id')->map(function ($groupedItems) {
-            $meal = $groupedItems->first();
-            $totalCount = $groupedItems->sum(function ($item) {
-                return $item->pivot->count ?? 0;
-            });
+        // Agar ovqat bo‘lmasa, bo‘sh kolleksiya qaytadi
+        if ($dailyMeals->isEmpty()) {
+            return view('admin.orders.index', compact(
+                'date',
+                'customers',
+                'drivers',
+                'dailyMeals',
+                'latestOrders',
+                'customerTotal',
+                'driverTotal',
+                'planByPaymentType',
+                'factByPaymentType',
+                'planByMethod',
+                'factByMethod'
+            ));
+        }
 
-            $meal->total_count = $totalCount;
-            return $meal;
-        })->values();
+        // 🗂 Barcha meals ro‘yxati
+        $meals = $dailyMeals->flatMap->items
+            ->groupBy('id')
+            ->map(function ($group) {
+                $meal = $group->first();
+                $meal->total_count = $group->sum(fn($item) => $item->pivot->count ?? 0);
+                return $meal;
+            })->values();
 
-        // Har bir ovqat bo‘yicha statistikani tayyorlash
+        // 📊 Har bir ovqat bo‘yicha statistika
         $mealStats = [];
-
         foreach ($dailyMeals as $dailyMeal) {
             foreach ($dailyMeal->items as $item) {
                 $orderedCount = $latestOrders->filter(function ($order) use ($item) {
@@ -362,8 +466,8 @@ class OrdersController extends Controller
             'driverTotal',
             'planByPaymentType',
             'factByPaymentType',
-            'planByMethod',    // ✅ YANGI
-            'factByMethod'     // ✅ YANGI
+            'planByMethod',
+            'factByMethod'
         ));
     }
 

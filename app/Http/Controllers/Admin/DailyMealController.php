@@ -13,24 +13,42 @@ class DailyMealController extends Controller
 {
 
 
+//    public function index(Request $request)
+//    {
+//        $date = $request->input('date');
+//
+//        if ($date) {
+//            $dailyMeals = DailyMeal::with('items')->whereDate('date', $date)->get();
+//        } else {
+//            $today = Carbon::today()->toDateString();
+//            $dailyMeals = DailyMeal::with('items')->whereDate('date', $today)->get();
+//
+//            if ($dailyMeals->isEmpty()) {
+//                $yesterday = Carbon::yesterday()->toDateString();
+//                $dailyMeals = DailyMeal::with('items')->whereDate('date', $yesterday)->get();
+//                $date = $yesterday;
+//            } else {
+//                $date = $today;
+//            }
+//        }
+//
+//        return view('admin.daily_meal.index', compact('dailyMeals', 'date'));
+//    }
+
     public function index(Request $request)
     {
-        $date = $request->input('date');
+        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
 
-        if ($date) {
-            $dailyMeals = DailyMeal::with('items')->whereDate('date', $date)->get();
-        } else {
-            $today = Carbon::today()->toDateString();
-            $dailyMeals = DailyMeal::with('items')->whereDate('date', $today)->get();
+        $startOfWeek = Carbon::parse($date)->startOfWeek(Carbon::MONDAY);
+        $endOfWeek = Carbon::parse($date)->endOfWeek(Carbon::SATURDAY);
 
-            if ($dailyMeals->isEmpty()) {
-                $yesterday = Carbon::yesterday()->toDateString();
-                $dailyMeals = DailyMeal::with('items')->whereDate('date', $yesterday)->get();
-                $date = $yesterday;
-            } else {
-                $date = $today;
-            }
-        }
+        $dailyMeals = DailyMeal::whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->with('items')
+            ->orderBy('date', 'asc') // ✅ DESC emas ASC qilib qo‘yamiz
+            ->get()
+            ->groupBy(function ($meal) {
+                return Carbon::parse($meal->date)->format('Y-m-d');
+            });
 
         return view('admin.daily_meal.index', compact('dailyMeals', 'date'));
     }

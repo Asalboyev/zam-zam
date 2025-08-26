@@ -100,6 +100,7 @@ class CustomersController extends Controller
         */
         $dailyLabels    = collect();
         $dailySalesData = collect();
+        $dailySalestotal    = 0; // Umumiy summani hisoblash uchun
         $dailyDate      = $request->input('daily_date');
 
         if ($dailyDate) {
@@ -112,6 +113,7 @@ class CustomersController extends Controller
                 $sales = Order::whereDate('order_date', $date)->sum('total_amount');
                 $dailyLabels->push($date->format('d M')); // Masalan, "01 Aug"
                 $dailySalesData->push($sales);
+                $dailySalestotal += $sales; // Umumiy summaga qo‘shish
             }
         } else {
             // Agar oy tanlanmagan bo‘lsa, joriy oyning kunlarini chiqarish
@@ -123,8 +125,10 @@ class CustomersController extends Controller
                 $sales = Order::whereDate('order_date', $date)->sum('total_amount');
                 $dailyLabels->push($date->format('d M'));
                 $dailySalesData->push($sales);
+                $dailySalestotal += $sales;
             }
         }
+
 
 
         /*
@@ -135,15 +139,16 @@ class CustomersController extends Controller
         $monthlyLabels    = collect();
         $monthlySalesData = collect();
 
-// GET parametrlarini olish
         $startMonth = $request->input('start_month');
         $endMonth   = $request->input('end_month');
 
-// Agar parametr berilmagan bo'lsa, oxirgi 12 oyni avtomatik olish
-        $end = $endMonth ? Carbon::parse($endMonth)->endOfMonth() : Carbon::now()->endOfMonth();
-        $start = $startMonth ? Carbon::parse($startMonth)->startOfMonth() : $end->copy()->subMonths(12)->startOfMonth(); // oxirgi 12 oy
+        $end   = $endMonth ? Carbon::parse($endMonth)->endOfMonth() : Carbon::now()->endOfMonth();
+        $start = $startMonth ? Carbon::parse($startMonth)->startOfMonth() : $end->copy()->subMonths(12)->startOfMonth();
 
-// Oylar bo'yicha period yaratish
+// Tanlangan davrdagi umumiy summa
+        $monthSalestotal = Order::whereBetween('order_date', [$start, $end])->sum('total_amount');
+
+// Har bir oy bo‘yicha ma’lumot
         $period = $start->monthsUntil($end->copy()->addMonth());
 
         foreach ($period as $month) {
@@ -156,6 +161,9 @@ class CustomersController extends Controller
         }
 
 
+
+
+
         /*
          |========================
          |   DAILY ORDERS (BUYURTMALAR)
@@ -164,6 +172,7 @@ class CustomersController extends Controller
         $dailyOrdersLabels = collect();
         $dailyOrdersData   = collect();
         $dailyOrdersDate   = $request->input('daily_orders_date');
+        $dailytotalOrders       = 0;
 
         if ($dailyOrdersDate) {
             // Tanlangan oyning birinchi va oxirgi kunlarini olish
@@ -173,11 +182,16 @@ class CustomersController extends Controller
             // Har bir kunni aylantirib chiqamiz
             for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $count = Order::whereDate('order_date', $date)->count();
-                $dailyOrdersLabels->push($date->format('d M')); // Masalan: 01 Aug
+                $dailyOrdersLabels->push($date->format('d M'));
                 $dailyOrdersData->push($count);
             }
+
+            // Tanlangan oy bo‘yicha umumiy buyurtmalar
+            $dailytotalOrders = Order::whereBetween('order_date', [$startOfMonth, $endOfMonth])->count();
+
         } else {
             // Agar sana tanlanmagan bo‘lsa, joriy oyning kunlarini chiqarish
+            $today = Carbon::now();
             $startOfMonth = $today->copy()->startOfMonth();
             $endOfMonth   = $today->copy()->endOfMonth();
 
@@ -186,6 +200,9 @@ class CustomersController extends Controller
                 $dailyOrdersLabels->push($date->format('d M'));
                 $dailyOrdersData->push($count);
             }
+
+            // Joriy oy bo‘yicha umumiy buyurtmalar
+            $dailytotalOrders = Order::whereBetween('order_date', [$startOfMonth, $endOfMonth])->count();
         }
 
         /*
@@ -195,8 +212,8 @@ class CustomersController extends Controller
         */
         $monthlyOrdersLabels = collect();
         $monthlyOrdersData   = collect();
+        $totalOrders         = 0; // umumiy buyurtmalar soni
 
-// Agar foydalanuvchi start/end oy kiritmagan bo'lsa, default oxirgi 12 oy
         $ordersStartMonth = $request->input('orders_start_month');
         $ordersEndMonth   = $request->input('orders_end_month');
 
@@ -210,6 +227,7 @@ class CustomersController extends Controller
 
         $period = $start->monthsUntil($end->copy()->addMonth());
 
+// Har bir oy bo‘yicha hisoblash
         foreach ($period as $month) {
             $count = Order::whereYear('order_date', $month->year)
                 ->whereMonth('order_date', $month->month)
@@ -217,33 +235,31 @@ class CustomersController extends Controller
 
             $monthlyOrdersLabels->push($month->format('F Y')); // Oyning nomi va yili
             $monthlyOrdersData->push($count);                  // Oylik buyurtmalar soni
+            $totalOrders += $count;                            // umumiy yig‘indi
         }
+
+// Umumiy buyurtmalar sonini chiqarish
+        $totalOrders = Order::whereBetween('order_date', [$start, $end])->count();
+
+// Jami buyurtmalarni ko‘rsatish
+
 
         /*
          |========================
          |   DAILY MEALS (OVQAT QOLDIQ)
          |========================
         */
-            $dailyMealsLabels = collect();
-            $dailyMealsData   = collect();
+        $dailyMealsLabels = collect();
+        $dailyMealsData   = collect();
+        $dailyMealsTotal  = 0; // umumiy hisob uchun
+
         $dailyMealsDate = $request->input('daily_meals_date');
 
+// Agar sana tanlangan bo'lsa
         if ($dailyMealsDate) {
-            $date = Carbon::parse($dailyMealsDate);
-            $start = $date->startOfMonth();
-            $end   = $date->endOfMonth();
-        } else {
-            // Agar hech narsa tanlanmasa, default qilib shu yilni olish
-            $start = Carbon::now()->startOfYear();
-            $end   = Carbon::now();
-        }
-
-        if ($dailyMealsDate) {
-            // Tanlangan oyning birinchi va oxirgi sanasini olish
             $startOfMonth = Carbon::parse($dailyMealsDate)->startOfMonth();
             $endOfMonth   = Carbon::parse($dailyMealsDate)->endOfMonth();
 
-            // Har bir kun bo'yicha hisoblash
             for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $count = DailyMeal::with('items')
                     ->whereDate('date', $date)
@@ -252,9 +268,12 @@ class CustomersController extends Controller
 
                 $dailyMealsLabels->push($date->format('d M')); // Masalan: 01 Aug
                 $dailyMealsData->push($count);
+
+                $dailyMealsTotal += $count; // umumiy summani hisoblash
             }
         } else {
-            // Agar sana tanlanmagan bo'lsa, joriy oyning kunlarini chiqarish
+            // Sana tanlanmagan bo‘lsa, joriy oyning kunlarini olish
+            $today = Carbon::today();
             $startOfMonth = $today->copy()->startOfMonth();
             $endOfMonth   = $today->copy()->endOfMonth();
 
@@ -266,6 +285,8 @@ class CustomersController extends Controller
 
                 $dailyMealsLabels->push($date->format('d M'));
                 $dailyMealsData->push($count);
+
+                $dailyMealsTotal += $count; // umumiy summani qo‘shib boramiz
             }
         }
 
@@ -276,12 +297,7 @@ class CustomersController extends Controller
         */
         $monthlyMealsLabels = collect();
         $monthlyMealsData   = collect();
-//        $mealsStartMonth    = $request->input('meals_start_month');
-//        $mealsEndMonth      = $request->input('meals_end_month');
-//
-//        $start = $mealsStartMonth ? Carbon::parse($mealsStartMonth)->startOfMonth() : Carbon::now()->startOfYear();
-//        $end   = $mealsEndMonth ? Carbon::parse($mealsEndMonth)->endOfMonth() : Carbon::now();
-
+        $monthlyMealsCount  = 0; // umumiy hisob uchun
 
         $mealsStartMonth = $request->input('meals_start_month');
         $mealsEndMonth   = $request->input('meals_end_month');
@@ -295,6 +311,7 @@ class CustomersController extends Controller
             : Carbon::now();
 
         $period = $start->monthsUntil($end->copy()->addMonth());
+
         foreach ($period as $month) {
             $count = DailyMeal::with('items')
                 ->whereYear('date', $month->year)
@@ -304,7 +321,11 @@ class CustomersController extends Controller
 
             $monthlyMealsLabels->push($month->format('F Y'));
             $monthlyMealsData->push($count);
+            $monthlyMealsCount += $count; // umumiy miqdor qo‘shiladi
         }
+
+
+
         /*
  |========================
  |   DAILY MEALS (Kunlik)
@@ -487,6 +508,13 @@ class CustomersController extends Controller
 
             'monthlyClientsData',
             'monthlyClientsLabels',
+
+            'totalOrders',
+            'dailytotalOrders',
+            'dailySalestotal',
+            'monthSalestotal',
+            'monthlyMealsCount',
+            'dailyMealsTotal',
         ));
     }
 
