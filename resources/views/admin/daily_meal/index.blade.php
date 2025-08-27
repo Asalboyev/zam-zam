@@ -190,6 +190,8 @@
                                     <span class="today-btn">Bugun</span>
                                 @endif
                                 <h3>{{ \Carbon\Carbon::parse($day)->translatedFormat('d F Y') }}</h3>
+                                    <a href="{{ route('admin.daily_meal.create') }}" class="btn-primary-custom">+ Yaratish</a>
+
                             </div>
 
                             <button class="toggle-btn" data-target="day-{{ $loop->index }}">

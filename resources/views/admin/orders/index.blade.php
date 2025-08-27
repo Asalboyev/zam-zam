@@ -85,6 +85,7 @@
             @endforeach
 
             <div style="display: flex; justify-content: space-between; padding: 15px 25px">
+                @if($dailyMeals->isNotEmpty())
                 <div>
                     @foreach($meals as $index => $meal)
                         <div style="color: {{ $colors[$index % count($colors)] }};">
@@ -93,6 +94,7 @@
                         </div>
                     @endforeach
                 </div>
+                @endif
                 @if($dailyMeals->isNotEmpty())
                     <div>
                         <h6 class="fw-bold">Driver:</h6>
