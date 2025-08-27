@@ -801,7 +801,9 @@ class OrdersController extends Controller
 
                 $colaQty = intval($orderData['cola'] ?? 0);
                 $colaPrice = 15000;
-                $colaTotal = $colaQty * $colaPrice;
+
+// Avval jami ovqatlar sonini hisoblaymiz
+                $totalMealsQty = array_sum($mealQuantities);
 
                 $mealTotal = 0;
                 foreach ($meals as $mealId => $qty) {
@@ -811,12 +813,15 @@ class OrdersController extends Controller
                     }
                 }
 
-                $totalMealsQty = array_sum($mealQuantities);
+// Agar jami ovqatlar 8 tadan oshsa, cola bepul bo'ladi
+                $colaTotal = $totalMealsQty > 7 ? 0 : $colaQty * $colaPrice;
+
                 $deliveryFee = $totalMealsQty > 8
                     ? 0
                     : floatval(str_replace([' ', ','], ['', '.'], $orderData['delivery'] ?? 20000));
 
                 $total = $mealTotal + $colaTotal + $deliveryFee;
+
 
                 $order = \App\Models\Order::create([
                     'customer_id' => $customer->id,
