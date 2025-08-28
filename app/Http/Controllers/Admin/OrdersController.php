@@ -816,7 +816,7 @@ class OrdersController extends Controller
 // Agar jami ovqatlar 8 tadan oshsa, cola bepul bo'ladi
                 $colaTotal = $totalMealsQty > 7 ? 0 : $colaQty * $colaPrice;
 
-                $deliveryFee = $totalMealsQty > 8
+                $deliveryFee = $totalMealsQty > 5
                     ? 0
                     : floatval(str_replace([' ', ','], ['', '.'], $orderData['delivery'] ?? 20000));
 
@@ -1145,7 +1145,12 @@ class OrdersController extends Controller
             $colaTotal = $colaQty * $colaPrice;
             $totalMealsQty = array_sum($meals);
 
-            $deliveryFee = $totalMealsQty > 8
+// Agar umumiy ovqat soni 8 dan oshsa, 1 dona cola tekin bo'ladi
+            if ($totalMealsQty > 7 && $colaQty > 0) {
+                $colaTotal -= $colaPrice;
+            }
+
+            $deliveryFee = $totalMealsQty > 5
                 ? 0
                 : floatval(str_replace([' ', ','], ['', '.'], $request->input('delivery', 20000)));
 
