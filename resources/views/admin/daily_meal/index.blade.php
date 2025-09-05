@@ -216,7 +216,7 @@
                                                 <p class="meal-name">{{ $item->name }}</p>
                                                 <p class="meal-stats">
                                                     Olindi: <strong>{{ $item->pivot->remaining_count }}</strong> |
-                                                    Qoldi: <strong>{{ $item->pivot->count}}</strong>
+                                                    Qoldi: <strong>{{ $item->pivot->count  }}</strong>
                                                 </p>
                                             </div>
                                             <div class="meal-action">

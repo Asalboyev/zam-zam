@@ -912,6 +912,7 @@ class OrdersController extends Controller
 
                 $telegramText = "📦 Buyurtma #{$order->daily_order_number}\n" .
                     "👤 Mijoz: {$customer->name}\n" .
+                    "👤 Mijoz no'meri: {$customer->phone}\n" .
                     ($driverName ? "🚚 Haydovchi: {$driverName}\n" : '') .
                     "📅 Sana: {$orderDate}\n\n" .
                     $mealListText . "\n" .
@@ -1235,6 +1236,7 @@ class OrdersController extends Controller
 
             $telegramText = "📦 O‘zgargan buyurtma #{$order->daily_order_number}\n" .
                 "👤 Mijoz: {$customer->name}\n" .
+                "👤 Mijoz no'meri: {$customer->phone}\n" .
                 ($driverName ? "🚚 Haydovchi: {$driverName}\n" : '') .
                 "📅 Sana: {$orderDate}\n\n" .
                 $mealListText . "\n" .
