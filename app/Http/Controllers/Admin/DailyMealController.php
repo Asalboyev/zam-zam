@@ -106,7 +106,7 @@ class DailyMealController extends Controller
     {
         $request->validate([
             'meal_id' => 'required|exists:meals,id',
-            'count' => 'required|integer|min:1',
+            'count' => 'required|integer|nullable',
         ]);
 
         DB::table('daily_meal_items')
