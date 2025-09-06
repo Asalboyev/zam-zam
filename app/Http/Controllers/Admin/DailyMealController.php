@@ -108,16 +108,27 @@ class DailyMealController extends Controller
             'meal_id' => 'required|exists:meals,id',
             'count' => 'required|integer|nullable',
         ]);
+//
+//        DB::table('daily_meal_items')
+//            ->where('id', $id)
+//            ->update([
+//                'meal_id' => $request->meal_id,
+//                'count' => $request->count,
+//                'remaining_count' => $request->count,
+//
+//                'updated_at' => now(),
+//            ]);
+
 
         DB::table('daily_meal_items')
             ->where('id', $id)
             ->update([
                 'meal_id' => $request->meal_id,
-                'count' => $request->count,
-                'remaining_count' => $request->count,
-
+                'count' => DB::raw('count + ' . (int) $request->count),
+                'remaining_count' => DB::raw('remaining_count + ' . (int) $request->count),
                 'updated_at' => now(),
             ]);
+
         return redirect()->route('admin.daily_meal.index')->with('success', 'Ovqat muvaffaqiyatli yangilandi.');
     }
 
