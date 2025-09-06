@@ -242,8 +242,10 @@
                                             <div class="meal-details">
                                                 <p class="meal-name">{{ $item->name }}</p>
                                                 <p class="meal-stats">
-                                                    Olindi: <strong>{{ $item->pivot->count }}</strong> |
-                                                    Qoldi: <strong>{{ $item->pivot->remaining_count }}</strong>
+                                                    Olindi: <strong>{{ $item->pivot->remaining_count}}</strong> |
+                                                    Qoldi: <strong>{{ $item->pivot->count}}</strong>
+                                                    Sotildi: <strong>{{ $item->pivot->sell  }}</strong>
+
                                                 </p>
                                             </div>
                                             <div class="meal-action">
