@@ -55,7 +55,7 @@
                                required
                                pattern="[1-9][0-9]*"
                                oninput="validity.valid||(value='');"
-                               value="{{ old('count', isset($item->count) ? $item->count : '') }}">
+                               >
                     </div>
 
                 </div>
