@@ -22,13 +22,22 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('role')->default('seller');
             $table->rememberToken();
             $table->timestamps();
         });
+
         DB::table('users')->insert([
             'name' => 'Admin',
             'email' => 'admin@gmail.com',
-            'password' => Hash::make('123123'),
+            'role' => 'admin',
+            'password' => Hash::make('ADMIN0102'),
+        ]);
+        DB::table('users')->insert([
+            'name' => 'Admin',
+            'email' => 'seller@gmail.com',
+            'role' => 'seller',
+            'password' => Hash::make('seller123123'),
         ]);
     }
 

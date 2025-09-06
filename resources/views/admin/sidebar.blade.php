@@ -6,9 +6,16 @@
         </a>
       </div>
       <ul class="sidebar-menu">
-        <li class="dropdown">
-          <a href="{{ route('admin.dashboard') }}" class="nav-link"><i data-feather="monitor"></i><span>Dashboard</span></a>
-        </li>
+          @auth
+              @if(auth()->user()->role === 'admin')
+                  <li class="dropdown">
+                      <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                          <i data-feather="monitor"></i>
+                          <span>Dashboard</span>
+                      </a>
+                  </li>
+              @endif
+          @endauth
           <li class="dropdown ">
               <a href="{{ route('admin.orders.index') }}" class="nav-link"><i data-feather="shopping-cart"></i><span> Buyurtma yaratish </span></a>
           </li>
