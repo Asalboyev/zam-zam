@@ -113,8 +113,9 @@ class DailyMealController extends Controller
             ->where('id', $id)
             ->update([
                 'meal_id' => $request->meal_id,
-                'count' => $request->count,
+//                'count' => $request->count,
                 'remaining_count' => $request->count,
+
                 'updated_at' => now(),
             ]);
         return redirect()->route('admin.daily_meal.index')->with('success', 'Ovqat muvaffaqiyatli yangilandi.');
