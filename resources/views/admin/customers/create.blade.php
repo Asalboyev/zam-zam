@@ -83,7 +83,7 @@
 
                         <div class="form-group">
                             <label>Tuman</label>
-                            <select name="region_id" class="form-control select2" required>
+                            <select name="region_id" class="form-control select2" >
                                 <option value="">-- Tumanni tanlang --</option>
                                 @foreach($regions as $region)
                                     <option value="{{ $region->id }}">{{ $region->name }}</option>
@@ -92,7 +92,7 @@
                         </div>
                         <div class="form-group">
                             <label>Manzil</label>
-                            <input type="text" name="district" class="form-control" required="">
+                            <input type="text" name="district" class="form-control" >
                         </div>
                     </div>
 
@@ -106,7 +106,7 @@
             <div class="card-body">
                 <div class="form-group status-group">
                     <label>Turini tanlang</label>
-                    <select class="form-control" name="type" id="type-select" required>
+                    <select class="form-control" name="type" id="type-select" >
                         <option value="oylik">Oylik mijoz</option>
                         <option value="odiy">Odiy</option>
                     </select>

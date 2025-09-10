@@ -524,12 +524,12 @@ class CustomersController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'region_id' => 'required|exists:regions,id',
+            'region_id' => 'nullable|exists:regions,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'telegram' => 'nullable|string|max:50',
-            'status' => 'required|in:Active,Blok',
-            'type' => 'required|in:oylik,odiy',
+            'status' => 'nullable|in:Active,Blok',
+            'type' => 'nullable|in:oylik,odiy',
 
 
             'address' => 'nullable|string|max:255',
