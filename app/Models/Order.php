@@ -17,6 +17,7 @@ class Order extends Model
         'meal_3_id', 'meal_3_quantity',
         'meal_4_id', 'meal_4_quantity',
         'cola_quantity',
+        'user_id',
         'delivery_fee',
         'driver_id',
         'payment_method',
@@ -25,6 +26,12 @@ class Order extends Model
         'daily_order_number',
         'total_amount',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 
     protected $casts = [
         'order_date' => 'date',

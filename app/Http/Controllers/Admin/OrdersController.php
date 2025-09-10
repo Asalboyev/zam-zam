@@ -841,6 +841,8 @@ class OrdersController extends Controller
                     'total_meals' => $totalMealsQty,
                     'total_amount' => $total,
                     'daily_order_number' => $dailyOrderNumber,
+                    'user_id' => auth()->id(),
+
                 ]);
 
                 $customer->balance = $cleanBalance - $total;
@@ -1201,6 +1203,8 @@ class OrdersController extends Controller
                 'payment_method' => $request->input('payment_type', $order->payment_method),
                 'total_meals' => $totalMealsQty,
                 'total_amount' => $total,
+                'user_id' => auth()->id(),
+
             ]);
 
             // ----------------
