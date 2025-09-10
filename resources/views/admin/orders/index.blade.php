@@ -151,7 +151,7 @@
                     @for ($i = 0; $i < 1; $i++)
                         <form method="POST" action="{{ route('admin.orders.store') }}">
                             @csrf
-
+                            <input type="hidden"  name="orders[{{ $i }}][order_date]" value="{{ $date }}">
                             <div class="table-responsive mt-3">
                                 <table class="table table-bordered customTable">
                                     <thead>
