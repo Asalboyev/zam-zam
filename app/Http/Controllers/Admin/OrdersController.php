@@ -623,6 +623,8 @@ class OrdersController extends Controller
         ]);
     }
 
+
+
 //    public function store(Request $request)
 //    {
 //        $orders = $request->input('orders');
@@ -649,10 +651,8 @@ class OrdersController extends Controller
 //                $dailyOrderCount = \App\Models\Order::whereDate('order_date', $orderDate)->count();
 //                $dailyOrderNumber = $dailyOrderCount + 1;
 //
-//                // Balansni float qilib olish
 //                $cleanBalance = floatval(str_replace([' ', ','], ['', '.'], $customer->balance));
 //
-//                // Ovqatlar ID va miqdorlari
 //                $mealIds = array_keys($meals);
 //                $mealQuantities = array_values($meals);
 //
@@ -667,12 +667,12 @@ class OrdersController extends Controller
 //                    'meal_4_quantity' => intval($mealQuantities[3] ?? 0),
 //                ];
 //
-//                // Cola
 //                $colaQty = intval($orderData['cola'] ?? 0);
 //                $colaPrice = 15000;
-//                $colaTotal = $colaQty * $colaPrice;
 //
-//                // Ovqat summasi
+//// Avval jami ovqatlar sonini hisoblaymiz
+//                $totalMealsQty = array_sum($mealQuantities);
+//
 //                $mealTotal = 0;
 //                foreach ($meals as $mealId => $qty) {
 //                    $meal = \App\Models\Meal::find($mealId);
@@ -681,15 +681,16 @@ class OrdersController extends Controller
 //                    }
 //                }
 //
-//                // Yetkazib berish
-//                $totalMealsQty = array_sum($mealQuantities);
-//                $deliveryFee = $totalMealsQty > 8
+//// Agar jami ovqatlar 8 tadan oshsa, cola bepul bo'ladi
+//                $colaTotal = $totalMealsQty > 7 ? 0 : $colaQty * $colaPrice;
+//
+//                $deliveryFee = $totalMealsQty > 5
 //                    ? 0
 //                    : floatval(str_replace([' ', ','], ['', '.'], $orderData['delivery'] ?? 20000));
 //
 //                $total = $mealTotal + $colaTotal + $deliveryFee;
 //
-//                // BUYURTMA YARATISH
+//
 //                $order = \App\Models\Order::create([
 //                    'customer_id' => $customer->id,
 //                    'meal_1_id' => $mealData['meal_1_id'],
@@ -710,11 +711,9 @@ class OrdersController extends Controller
 //                    'daily_order_number' => $dailyOrderNumber,
 //                ]);
 //
-//                // BALANSDAN AYIRISH — MINUS BO‘LSA HAM
 //                $customer->balance = $cleanBalance - $total;
 //                $customer->save();
 //
-//                // Balans tarixiga yozish
 //                \App\Models\BalanceHistory::create([
 //                    'customer_id' => $customer->id,
 //                    'amount' => $total,
@@ -722,18 +721,74 @@ class OrdersController extends Controller
 //                    'description' => "Buyurtma #{$order->id} uchun balansdan ayirildi (minus bo‘lishi mumkin).",
 //                ]);
 //
-//                // DailyMeal stokdan ayirish
 //                $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
+//
 //                foreach ($dailyMeals as $dailyMeal) {
 //                    foreach ($meals as $mealId => $qty) {
 //                        $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
+//
 //                        if ($item && $item->pivot) {
 //                            $currentCount = $item->pivot->count;
-//                            $newCount = max(0, $currentCount - intval($qty));
-//                            $dailyMeal->items()->updateExistingPivot($mealId, ['count' => $newCount]);
+//                            $currentSell  = $item->pivot->sell ?? 0; // sell bo‘sh bo‘lsa 0 qilamiz
+//
+//                            // kamayadigan miqdor
+//                            $decrease = intval($qty);
+//
+//                            // yangi qiymatlar
+//                            $newCount = max(0, $currentCount - $decrease);
+//                            $newSell  = $currentSell + $decrease;
+//
+//                            // pivot jadvalni yangilash
+//                            $dailyMeal->items()->updateExistingPivot($mealId, [
+//                                'count' => $newCount,
+//                                'sell'  => $newSell,
+//                            ]);
 //                        }
 //                    }
 //                }
+//
+//                // ----------------
+//                // TELEGRAM XABAR
+//                // ----------------
+//                $mealListText = '';
+//                foreach ($meals as $mealId => $qty) {
+//                    if ($qty > 0) { // faqat 0 dan katta bo'lganlar
+//                        $meal = \App\Models\Meal::find($mealId);
+//                        if ($meal) {
+//                            $mealListText .= "🍽 {$meal->name} — {$qty} dona\n";
+//                        }
+//                    }
+//                }
+//                if ($colaQty > 0) {
+//                    $mealListText .= "🥤 Cola — {$colaQty} dona\n";
+//                }
+//
+//                $locationLink = '';
+//                if (!empty($customer->location_coordinates)) {
+//                    $coords = $customer->location_coordinates;
+//                    $url = "https://www.google.com/maps/search/?api=1&query=" . urlencode($coords);
+//                    $locationLink = "📍 Location: [linkni ustiga bosing ]($url)"; // Markdown link
+//                }
+//
+//                $driverName = '';
+//                if (!empty($orderData['driver_id'])) {
+//                    $driver = \App\Models\Driver::find($orderData['driver_id']);
+//                    if ($driver) {
+//                        $driverName = $driver->name;
+//                    }
+//                }
+//
+//                $telegramText = "📦 Buyurtma #{$order->daily_order_number}\n" .
+//                    "👤 Mijoz: {$customer->name}\n" .
+//                    "👤 Mijoz no'meri: {$customer->phone}\n" .
+//                    ($driverName ? "🚚 Haydovchi: {$driverName}\n" : '') .
+//                    "📅 Sana: {$orderDate}\n\n" .
+//                    $mealListText . "\n" .
+//                    "📦 Yetkazib berish: " . number_format($deliveryFee, 0, '.', ' ') . " so‘m\n" .
+//                    "💰 Umumiy: " . number_format($total, 0, '.', ' ') . " so‘m\n" .
+//                    ($locationLink ? "\n{$locationLink}" : '');
+//
+//                $this->sendTelegramMessage($telegramText);
 //            }
 //
 //            if ($errors->isNotEmpty()) {
@@ -802,9 +857,10 @@ class OrdersController extends Controller
                 $colaQty = intval($orderData['cola'] ?? 0);
                 $colaPrice = 15000;
 
-// Avval jami ovqatlar sonini hisoblaymiz
+                // jami ovqatlar soni
                 $totalMealsQty = array_sum($mealQuantities);
 
+                // ovqat summasi
                 $mealTotal = 0;
                 foreach ($meals as $mealId => $qty) {
                     $meal = \App\Models\Meal::find($mealId);
@@ -813,16 +869,17 @@ class OrdersController extends Controller
                     }
                 }
 
-// Agar jami ovqatlar 8 tadan oshsa, cola bepul bo'ladi
+                // agar 8 ta ovqatdan ko‘p bo‘lsa cola bepul
                 $colaTotal = $totalMealsQty > 7 ? 0 : $colaQty * $colaPrice;
 
+                // delivery
                 $deliveryFee = $totalMealsQty > 5
                     ? 0
                     : floatval(str_replace([' ', ','], ['', '.'], $orderData['delivery'] ?? 20000));
 
                 $total = $mealTotal + $colaTotal + $deliveryFee;
 
-
+                // Order yaratish
                 $order = \App\Models\Order::create([
                     'customer_id' => $customer->id,
                     'meal_1_id' => $mealData['meal_1_id'],
@@ -843,6 +900,7 @@ class OrdersController extends Controller
                     'daily_order_number' => $dailyOrderNumber,
                 ]);
 
+                // balansdan ayirish
                 $customer->balance = $cleanBalance - $total;
                 $customer->save();
 
@@ -853,24 +911,22 @@ class OrdersController extends Controller
                     'description' => "Buyurtma #{$order->id} uchun balansdan ayirildi (minus bo‘lishi mumkin).",
                 ]);
 
-                $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
+                // === DAILY MEAL COUNTNI YANGILASH ===
+                $dailyMeal = \App\Models\DailyMeal::where('date', $orderDate)->first();
 
-                foreach ($dailyMeals as $dailyMeal) {
+                if ($dailyMeal) {
                     foreach ($meals as $mealId => $qty) {
                         $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
 
                         if ($item && $item->pivot) {
                             $currentCount = $item->pivot->count;
-                            $currentSell  = $item->pivot->sell ?? 0; // sell bo‘sh bo‘lsa 0 qilamiz
+                            $currentSell  = $item->pivot->sell ?? 0;
 
-                            // kamayadigan miqdor
                             $decrease = intval($qty);
 
-                            // yangi qiymatlar
                             $newCount = max(0, $currentCount - $decrease);
                             $newSell  = $currentSell + $decrease;
 
-                            // pivot jadvalni yangilash
                             $dailyMeal->items()->updateExistingPivot($mealId, [
                                 'count' => $newCount,
                                 'sell'  => $newSell,
@@ -879,12 +935,10 @@ class OrdersController extends Controller
                     }
                 }
 
-                // ----------------
-                // TELEGRAM XABAR
-                // ----------------
+                // === TELEGRAM XABAR ===
                 $mealListText = '';
                 foreach ($meals as $mealId => $qty) {
-                    if ($qty > 0) { // faqat 0 dan katta bo'lganlar
+                    if ($qty > 0) {
                         $meal = \App\Models\Meal::find($mealId);
                         if ($meal) {
                             $mealListText .= "🍽 {$meal->name} — {$qty} dona\n";
@@ -899,7 +953,7 @@ class OrdersController extends Controller
                 if (!empty($customer->location_coordinates)) {
                     $coords = $customer->location_coordinates;
                     $url = "https://www.google.com/maps/search/?api=1&query=" . urlencode($coords);
-                    $locationLink = "📍 Location: [linkni ustiga bosing ]($url)"; // Markdown link
+                    $locationLink = "📍 Location: [linkni ustiga bosing]($url)";
                 }
 
                 $driverName = '';
@@ -912,7 +966,7 @@ class OrdersController extends Controller
 
                 $telegramText = "📦 Buyurtma #{$order->daily_order_number}\n" .
                     "👤 Mijoz: {$customer->name}\n" .
-                    "👤 Mijoz no'meri: {$customer->phone}\n" .
+                    "📞 Mijoz no'meri: {$customer->phone}\n" .
                     ($driverName ? "🚚 Haydovchi: {$driverName}\n" : '') .
                     "📅 Sana: {$orderDate}\n\n" .
                     $mealListText . "\n" .
