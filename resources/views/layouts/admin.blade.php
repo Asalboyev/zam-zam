@@ -48,7 +48,16 @@
                                 </div>
                             </form>
                         </li>
+
                     </ul>
+
+                </div>
+                <div class="footer-left">
+                    <a href="{{ route('logout') }}" onclick="event.preventDefault();document.getElementById('logout-form').submit();" class="dropdown-item">Выйти</a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+
                 </div>
             </nav>
             @include('admin.sidebar')
@@ -60,7 +69,7 @@
             </div>
             <footer class="main-footer">
                 <div class="footer-left">
-                    <a href="templateshub.net">Templateshub</a></a>
+{{--                    <a href="templateshub.net">Templateshub</a></a>--}}
                 </div>
                 <div class="footer-right">
                 </div>

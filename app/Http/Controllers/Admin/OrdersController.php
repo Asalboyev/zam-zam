@@ -1269,5 +1269,15 @@ class OrdersController extends Controller
     }
 
 
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+        $order->delete(); // bu yerda faqat deleted_at ga vaqt yoziladi
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', 'Order muvaffaqiyatli o‘chirildi!');
+    }
+
+
 
 }

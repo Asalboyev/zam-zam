@@ -186,6 +186,11 @@
                             <th style="width: 50px">Olindi</th>
                             <th></th>
                             <th style="width: 56px"><img src="{{asset('/img/pencil.svg')}}"></th>
+                            @auth
+                                @if(auth()->user()->role === 'admin')
+                                    <th></th>
+                                @endif
+                            @endauth
 
                         </tr>
                         </thead>
@@ -293,6 +298,20 @@
                                     <a href="{{route('admin.orders.edit',$order->id)}}"><img
                                             src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;"></a>
                                 </td>
+                                @auth
+                                    @if(auth()->user()->role === 'admin')
+                                        <td>
+
+                                            <form style="display: inline" action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger save-received-amount">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    @endif
+                                @endauth
 
                             </tr>
                         @endforeach
