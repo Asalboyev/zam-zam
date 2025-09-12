@@ -253,7 +253,9 @@
                                     <div class="received-amount-wrapper">
                                         @php
                                             $bgColor = '';
-                                            if (strtolower($order->customer->type) === 'oylik') {
+                                            $customerType = strtolower(optional($order->customer)->type);
+
+                                            if ($customerType === 'oylik') {
                                                 $bgColor = 'color: blue;';
                                             } elseif ($order->received_amount < $order->total_amount) {
                                                 $bgColor = 'color: red;';
@@ -261,17 +263,18 @@
                                                 $bgColor = 'color: green;';
                                             }
                                         @endphp
-
+{{--                                            new--}}
                                         <input
                                             type="number"
                                             class="received-amount-input form-control"
                                             value="{{ $order->received_amount }}"
                                             style="width: 120px; display: inline-block; {{ $bgColor }}"
                                             max="{{ $order->total_amount }}"
-                                            {{ strtolower($order->customer->type) === 'oylik' ? 'disabled' : '' }}
+                                            {{ $customerType === 'oylik' ? 'disabled' : '' }}
                                         >
                                     </div>
                                 </td>
+
 
 
                                 <td style="width: 56px">
