@@ -49,6 +49,7 @@ class Order extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function meals()
     {
         return $this->belongsToMany(Meal::class)->withPivot('quantity')->withTimestamps();
