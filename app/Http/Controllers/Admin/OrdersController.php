@@ -1256,7 +1256,7 @@ class OrdersController extends Controller
             $this->sendTelegramMessage($telegramText);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Buyurtma muvaffaqiyatli yangilandi!');
+            return redirect()->route('admin.orders.index')->with('success', 'Buyurtma muvaffaqiyatli yangilandi!');
         } catch (\Exception $e) {
             DB::rollBack();
             logger()->error('Order update error', [

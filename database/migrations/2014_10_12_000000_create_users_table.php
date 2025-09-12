@@ -34,10 +34,31 @@ return new class extends Migration
             'password' => Hash::make('ADMIN0102'),
         ]);
         DB::table('users')->insert([
-            'name' => 'Admin',
+            'name' => 'seller',
             'email' => 'seller@gmail.com',
             'role' => 'seller',
-            'password' => Hash::make('seller123123'),
+            'password' => Hash::make('seller123123>la'),
+        ]);
+
+        DB::table('users')->insert([
+            'name' => 'Maftuna',
+            'email' => 'maftuna@gmail.com',
+            'role' => 'seller',
+            'password' => Hash::make('maftunaseller123123'),
+        ]);
+
+        DB::table('users')->insert([
+            'name' => 'Sevinch',
+            'email' => 'sevinch@gmail.com',
+            'role' => 'seller',
+            'password' => Hash::make('sevinch123123'),
+        ]);
+
+        DB::table('users')->insert([
+            'name' => 'Shakhzoda',
+            'email' => 'shakhzoda@gmail.com',
+            'role' => 'seller',
+            'password' => Hash::make('shakhzoda1122'),
         ]);
     }
 
