@@ -56,8 +56,18 @@
                         </div>
                         <div class="form-group">
                             <label>Telefon</label>
-                            <input type="text"  name="phone"  placeholder="telefon..." class="form-control">
+                            <input type="text" name="phone"
+                                   value="{{ old('phone') }}"
+                                   placeholder="telefon..."
+                                   class="form-control @error('phone') is-invalid @enderror">
+
+                            @error('phone')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
                         </div>
+
                         <div class="form-group">
                             <label>Telegram</label>
                             <input type="text"  name="telegram"  placeholder="telegram..." class="form-control">

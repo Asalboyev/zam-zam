@@ -526,11 +526,10 @@ class CustomersController extends Controller
         $validated = $request->validate([
             'region_id' => 'nullable|exists:regions,id',
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20|unique:customers,phone',
             'telegram' => 'nullable|string|max:50',
             'status' => 'nullable|in:Active,Blok',
             'type' => 'nullable|in:oylik,odiy',
-
 
             'address' => 'nullable|string|max:255',
             'district' => 'nullable|string|max:100',
@@ -538,6 +537,8 @@ class CustomersController extends Controller
 
             'balance' => 'nullable|numeric',
             'balance_due_date' => 'nullable|date',
+        ], [
+            'phone.unique' => 'Bunday nomerdagi mijoz bor!', // ✅ custom message
         ]);
 
         $customer = Customer::create($validated);
