@@ -1373,7 +1373,7 @@ class OrdersController extends Controller
             return redirect()->back()->with('error', 'Xatolik: ' . $e->getMessage())->withInput();
         }
     }
-
+///new
 
 
 }
