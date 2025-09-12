@@ -1171,7 +1171,7 @@ class OrdersController extends Controller
             \App\Models\BalanceHistory::create([
                 'customer_id' => $customer->id,
                 'amount' => $total,
-                'type' => 'odiy', // ⚠️ bu yerda 'order_update' emas, enum qiymatidan foydalaning
+                'type' => 'order', // ⚠️ bu yerda 'order_update' emas, enum qiymatidan foydalaning
                 'description' => "Buyurtma #{$order->id} yangilandi.",
             ]);
 
