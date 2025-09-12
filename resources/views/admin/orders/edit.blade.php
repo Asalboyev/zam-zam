@@ -146,13 +146,15 @@
                                 </td>
 
                                 {{-- Payment type --}}
+
                                 <td>
-                                    <select name="payment_type" class="form-control">
-                                        <option value="naqt" {{ old('payment_type', $order->payment_method) == 'naqt' ? 'selected' : '' }}>Naqd</option>
-                                        <option value="karta" {{ old('payment_type', $order->payment_method) == 'karta' ? 'selected' : '' }}>Karta</option>
-                                        <option value="transfer" {{ old('payment_type', $order->payment_method) == 'transfer' ? 'selected' : '' }}>Bank orqali</option>
+                                    <select name="payment_method" class="form-control">
+                                        <option value="naqt" {{ old('payment_method', $order->payment_method) == 'naqt' ? 'selected' : '' }}>Naqd</option>
+                                        <option value="karta" {{ old('payment_method', $order->payment_method) == 'karta' ? 'selected' : '' }}>Karta</option>
+                                        <option value="transfer" {{ old('payment_method', $order->payment_method) == 'transfer' ? 'selected' : '' }}>Bank orqali</option>
                                     </select>
                                 </td>
+
 
                                 {{-- Jami readonly --}}
                                 <td>

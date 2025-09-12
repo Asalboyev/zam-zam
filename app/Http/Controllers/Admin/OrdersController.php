@@ -1101,7 +1101,7 @@ class OrdersController extends Controller
                 'meal_4_quantity' => intval($mealQuantities[3] ?? 0),
                 'cola_quantity' => $colaQty,
                 'delivery_fee' => $deliveryFee,
-                'payment_method' => $request->input('payment_type', $order->payment_method),
+                'payment_method' => $request->input('payment_method', $order->payment_method), // ✅ to‘g‘rilangan
                 'total_meals' => $totalMealsQty,
                 'total_amount' => $total,
                 'user_id' => auth()->id(),
