@@ -263,7 +263,6 @@
                                                 $bgColor = 'color: green;';
                                             }
                                         @endphp
-{{--                                            new--}}
                                         <input
                                             type="number"
                                             class="received-amount-input form-control"
@@ -278,13 +277,18 @@
 
 
                                 <td style="width: 56px">
+                                    @php
+                                        $customerType = strtolower(optional($order->customer)->type);
+                                    @endphp
+
                                     <button
                                         class="btn btn-sm btn-success save-received-amount"
                                         data-order-id="{{ $order->id }}"
-                                        {{ strtolower($order->customer->type) === 'oylik' ? 'disabled' : '' }}>
+                                        {{ $customerType === 'oylik' ? 'disabled' : '' }}>
                                         <i class="fa fa-check"></i>
                                     </button>
                                 </td>
+
                                 <td class="edit-received-amount" style="width: 56px">
                                     <a href="{{route('admin.orders.edit',$order->id)}}"><img
                                             src="{{asset('/img/pencil.svg')}}" style="cursor: pointer;"></a>
