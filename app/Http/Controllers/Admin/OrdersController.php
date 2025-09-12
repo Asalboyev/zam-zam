@@ -1044,7 +1044,6 @@ class OrdersController extends Controller
             $colaTotal = $colaQty * $colaPrice;
             $totalMealsQty = array_sum($meals);
 
-            // Agar umumiy ovqat soni 8 dan oshsa, 1 dona cola tekin
             if ($totalMealsQty > 7 && $colaQty > 0) {
                 $colaTotal -= $colaPrice;
             }
@@ -1060,11 +1059,11 @@ class OrdersController extends Controller
             $customer->balance -= $total;               // yangi summani chiqarib tashlash
             $customer->save();
 
-            // Tarixga yozib qo‘yamiz
+            // Tarixga yozib qo‘yamiz (❗️ ENUM 'oylik' yoki 'odiy' bo‘lishi kerak bo‘lsa, shunga moslang)
             \App\Models\BalanceHistory::create([
                 'customer_id' => $customer->id,
                 'amount' => $total,
-                'type' => 'order_update',
+                'type' => 'odiy', // ⚠️ bu yerda 'order_update' emas, enum qiymatidan foydalaning
                 'description' => "Buyurtma #{$order->id} yangilandi.",
             ]);
 
@@ -1101,7 +1100,7 @@ class OrdersController extends Controller
                 'meal_4_quantity' => intval($mealQuantities[3] ?? 0),
                 'cola_quantity' => $colaQty,
                 'delivery_fee' => $deliveryFee,
-                'payment_method' => $request->input('payment_method', $order->payment_method), // ✅ to‘g‘rilangan
+                'payment_method' => $request->input('payment_method', $order->payment_method), // ✅ TO‘G‘RILANDI
                 'total_meals' => $totalMealsQty,
                 'total_amount' => $total,
                 'user_id' => auth()->id(),
