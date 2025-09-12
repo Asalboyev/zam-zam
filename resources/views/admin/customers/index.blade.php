@@ -176,13 +176,17 @@
 {{--                                <td>{{$iteam->address}}</td>--}}
                                 <td>{{$iteam->district}}</td>
                                 <td>
-                                    <form style="display: inline" action="{{ route('admin.customers.destroy', $iteam->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="icon-btn delete-btn">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    @auth
+                                        @if(auth()->user()->role === 'admin')
+                                            <form style="display: inline" action="{{ route('admin.customers.destroy', $iteam->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="icon-btn delete-btn">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endauth
                                     <a href="{{ route('admin.customers.edit', $iteam->id) }}" class="icon-btn">
                                         <i class="fas fa-edit"></i>
                                     </a>
