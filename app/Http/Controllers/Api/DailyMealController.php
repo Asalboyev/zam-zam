@@ -22,9 +22,11 @@ class DailyMealController extends Controller
                 return Carbon::parse($meal->date)->format('Y-m-d');
             });
 
-        return view('admin.daily_meal.index', compact('dailyMeals', 'today'));
+        return response()->json([
+            'date' => $today,
+            'data' => $dailyMeals,
+        ]);
     }
-
     public function store(Request $request)
     {
         $validated = $request->validate([
