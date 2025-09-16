@@ -222,6 +222,17 @@
                                             </div>
                                             <div class="meal-action">
                                                 <a href="{{ route('admin.daily_meal.edit', $item->pivot->id) }}">✏️</a>
+                                                @auth
+                                                    @if(auth()->user()->role === 'admin')
+                                                        <form style="display: inline" action="{{ route('admin.daily_meal.destroy', $item->pivot->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="icon-btn delete-btn">
+                                                                o'chrish
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                @endauth
                                             </div>
                                         </div>
                                     @endforeach
@@ -250,7 +261,19 @@
                                             </div>
                                             <div class="meal-action">
                                                 <a href="{{ route('admin.daily_meal.edit', $item->pivot->id) }}">✏️</a>
+                                                @auth
+                                                    @if(auth()->user()->role === 'admin')
+                                                        <form style="display: inline" action="{{ route('admin.daily_meal.destroy', $item->pivot->id) }}" method="POST" onsubmit="return confirm('Ochirishni xohlisizmi?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="icon-btn delete-btn">
+                                                                o'chrish
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                @endauth
                                             </div>
+
                                         </div>
                                     @endforeach
                                 @endforeach

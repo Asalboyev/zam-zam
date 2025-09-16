@@ -131,5 +131,21 @@ class DailyMealController extends Controller
 
         return redirect()->route('admin.daily_meal.index')->with('success', 'Ovqat muvaffaqiyatli yangilandi.');
     }
+    public function destroy($id)
+    {
+        // daily_meal_items jadvalidan tegishli elementni topish
+        $item = DB::table('daily_meal_items')->where('id', $id)->first();
+
+        if (!$item) {
+            abort(404); // agar topilmasa
+        }
+
+        // O‘chirish
+        DB::table('daily_meal_items')->where('id', $id)->delete();
+
+        return redirect()->route('admin.daily_meal.index')->with('success', 'Item deleted');
+    }
+
+
 
 }
