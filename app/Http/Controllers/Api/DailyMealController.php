@@ -18,6 +18,18 @@ class DailyMealController extends Controller
             ->with('items')
             ->orderBy('date', 'asc')
             ->get()
+            ->map(function ($meal) {
+                // Har bir meal ichidagi itemslarni o‘zgartiramiz
+                $meal->items = $meal->items->map(function ($item) {
+                    if ($item->img) {
+                        $item->img_url = url('upload/images/' . $item->img);
+                    } else {
+                        $item->img_url = null;
+                    }
+                    return $item;
+                });
+                return $meal;
+            })
             ->groupBy(function ($meal) {
                 return Carbon::parse($meal->date)->format('Y-m-d');
             });
@@ -27,6 +39,7 @@ class DailyMealController extends Controller
             'data' => $dailyMeals,
         ]);
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
