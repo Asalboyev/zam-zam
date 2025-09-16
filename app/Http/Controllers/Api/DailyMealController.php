@@ -21,8 +21,8 @@ class DailyMealController extends Controller
             ->map(function ($meal) {
                 // Har bir meal ichidagi itemslarni o‘zgartiramiz
                 $meal->items = $meal->items->map(function ($item) {
-                    if ($item->img) {
-                        $item->img_url = url('upload/images/' . $item->img);
+                    if ($item->image) {
+                        $item->img_url = url('upload/images/' . $item->image);
                     } else {
                         $item->img_url = null;
                     }
