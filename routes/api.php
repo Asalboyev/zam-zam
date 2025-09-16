@@ -17,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/daily-meals', [App\Http\Controllers\Api\DailyMealController::class, 'index']);
+Route::post('/customers', [App\Http\Controllers\Api\DailyMealController::class, 'store']);
+Route::post('/order', [App\Http\Controllers\Api\DailyMealController::class, 'order']);
+
+
