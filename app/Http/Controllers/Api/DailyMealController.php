@@ -4,12 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\Customer;
 use App\Models\DailyMeal;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\Meal;
+use App\Models\BalanceHistory;
+use App\Models\Driver;
 
 class DailyMealController extends Controller
 {
+    // Bugungi menyu
     public function index(Request $request)
     {
         $today = Carbon::today()->format('Y-m-d');
@@ -19,20 +25,13 @@ class DailyMealController extends Controller
             ->orderBy('date', 'asc')
             ->get()
             ->map(function ($meal) {
-                // Har bir meal ichidagi itemslarni o‘zgartiramiz
                 $meal->items = $meal->items->map(function ($item) {
-                    if ($item->image) {
-                        $item->image = url('uploads/' . $item->image);
-                    } else {
-                        $item->image = null;
-                    }
+                    $item->image = $item->image ? url('uploads/' . $item->image) : null;
                     return $item;
                 });
                 return $meal;
             })
-            ->groupBy(function ($meal) {
-                return Carbon::parse($meal->date)->format('Y-m-d');
-            });
+            ->groupBy(fn($meal) => Carbon::parse($meal->date)->format('Y-m-d'));
 
         return response()->json([
             'date' => $today,
@@ -40,24 +39,52 @@ class DailyMealController extends Controller
         ]);
     }
 
+    // Barcha mijozlarni olish
+    public function get()
+    {
+        $customers = Customer::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $customers
+        ]);
+    }
+
+    // Telegram ID bo‘yicha mijoz topish
+    public function getByTelegram($telegram)
+    {
+        $customer = Customer::where('telegram', $telegram)->first();
+
+        if (!$customer) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Mijoz topilmadi'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $customer
+        ]);
+    }
+
+    // Yangi mijoz qo‘shish
     public function store(Request $request)
     {
         $validated = $request->validate([
             'region_id' => 'nullable|exists:regions,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20|unique:customers,phone',
-            'telegram' => 'nullable|string|max:50',
+            'telegram' => 'nullable|string|max:50|unique:customers,telegram',
             'status' => 'nullable|in:Active,Blok',
             'type' => 'nullable|in:oylik,odiy',
-
             'address' => 'nullable|string|max:255',
             'district' => 'nullable|string|max:100',
             'location_coordinates' => 'nullable|string|max:255',
-
             'balance' => 'nullable|numeric',
             'balance_due_date' => 'nullable|date',
         ], [
-            'phone.unique' => 'Bunday nomerdagi mijoz bor!', // custom message
+            'phone.unique' => 'Bunday nomerdagi mijoz bor!',
+            'telegram.unique' => 'Bu Telegram ID bilan mijoz mavjud!',
         ]);
 
         $customer = Customer::create($validated);
@@ -69,6 +96,7 @@ class DailyMealController extends Controller
         ], 201);
     }
 
+    // Buyurtma yaratish
     public function order(Request $request)
     {
         $orders = $request->input('orders');
@@ -78,27 +106,20 @@ class DailyMealController extends Controller
             DB::beginTransaction();
 
             foreach ($orders as $i => $orderData) {
-                if (!isset($orderData['customer_id']) || !is_numeric($orderData['customer_id'])) {
-                    continue;
-                }
+                if (empty($orderData['customer_id'])) continue;
 
                 $orderDate = $orderData['order_date'] ?? now()->format('Y-m-d');
                 $meals = $orderData['meals'] ?? [];
                 $totalMealQty = array_sum(array_map('intval', $meals));
 
                 if ($totalMealQty <= 0) {
-                    $errors[] = [
-                        'row' => $i + 1,
-                        'message' => "Kamida bitta ovqat tanlang."
-                    ];
+                    $errors[] = ['row' => $i + 1, 'message' => "Kamida bitta ovqat tanlang."];
                     continue;
                 }
 
-                $customer = \App\Models\Customer::findOrFail($orderData['customer_id']);
-                $dailyOrderCount = \App\Models\Order::whereDate('order_date', $orderDate)->count();
-                $dailyOrderNumber = $dailyOrderCount + 1;
-
-                $cleanBalance = floatval(str_replace([' ', ','], ['', '.'], $customer->balance));
+                $customer = Customer::findOrFail($orderData['customer_id']);
+                $dailyOrderNumber = Order::whereDate('order_date', $orderDate)->count() + 1;
+                $cleanBalance = floatval($customer->balance);
 
                 $mealIds = array_keys($meals);
                 $mealQuantities = array_values($meals);
@@ -106,30 +127,25 @@ class DailyMealController extends Controller
                 $colaQty = intval($orderData['cola'] ?? 0);
                 $colaPrice = 15000;
 
-                // Jami ovqatlar soni
-                $totalMealsQty = array_sum($mealQuantities);
-
                 // Ovqat summasi
                 $mealTotal = 0;
                 foreach ($meals as $mealId => $qty) {
-                    $meal = \App\Models\Meal::find($mealId);
-                    if ($meal) {
-                        $mealTotal += $meal->price * intval($qty);
-                    }
+                    $meal = Meal::find($mealId);
+                    if ($meal) $mealTotal += $meal->price * intval($qty);
                 }
 
-                // Cola bepul sharti
-                $colaTotal = $totalMealsQty > 7 ? 0 : $colaQty * $colaPrice;
+                // Cola bepulmi?
+                $colaTotal = $totalMealQty > 7 ? 0 : $colaQty * $colaPrice;
 
-                // Yetkazib berish
-                $deliveryFee = $totalMealsQty > 5
+                // Yetkazib berish narxi
+                $deliveryFee = $totalMealQty > 5
                     ? 0
-                    : floatval(str_replace([' ', ','], ['', '.'], $orderData['delivery'] ?? 20000));
+                    : floatval($orderData['delivery'] ?? 20000);
 
                 $total = $mealTotal + $colaTotal + $deliveryFee;
 
                 // Order yaratish
-                $order = \App\Models\Order::create([
+                $order = Order::create([
                     'customer_id' => $customer->id,
                     'meal_1_id' => $mealIds[0] ?? null,
                     'meal_1_quantity' => intval($mealQuantities[0] ?? 0),
@@ -144,102 +160,52 @@ class DailyMealController extends Controller
                     'driver_id' => $orderData['driver_id'] ?? null,
                     'order_date' => $orderDate,
                     'payment_method' => $orderData['payment_type'] ?? 'cash',
-                    'total_meals' => $totalMealsQty,
+                    'total_meals' => $totalMealQty,
                     'total_amount' => $total,
                     'daily_order_number' => $dailyOrderNumber,
                     'user_id' => auth()->id(),
                 ]);
 
-                // Balansni yangilash
+                // Balansni minus qilish
                 $customer->balance = $cleanBalance - $total;
                 $customer->save();
 
-                \App\Models\BalanceHistory::create([
+                BalanceHistory::create([
                     'customer_id' => $customer->id,
                     'amount' => $total,
                     'type' => 'order',
-                    'description' => "Buyurtma #{$order->id} uchun balansdan ayirildi (minus bo‘lishi mumkin).",
+                    'description' => "Buyurtma #{$order->id} uchun balansdan ayirildi.",
                 ]);
 
-                // DailyMeal stok yangilash
-                $dailyMeals = \App\Models\DailyMeal::where('date', $orderDate)->get();
-                foreach ($dailyMeals as $dailyMeal) {
-                    foreach ($meals as $mealId => $qty) {
-                        $item = $dailyMeal->items()->where('meal_id', $mealId)->first();
-                        if ($item && $item->pivot) {
-                            $newCount = max(0, $item->pivot->count - intval($qty));
-                            $newSell  = $item->pivot->sell + intval($qty);
-
-                            $dailyMeal->items()->updateExistingPivot($mealId, [
-                                'count' => $newCount,
-                                'sell'  => $newSell,
-                            ]);
-                        }
-                    }
-                }
-
-                // Telegram xabar
+                // Telegramga xabar (soddalashtirilgan)
                 $mealListText = '';
                 foreach ($meals as $mealId => $qty) {
                     if ($qty > 0) {
-                        $meal = \App\Models\Meal::find($mealId);
-                        if ($meal) {
-                            $mealListText .= "🍽 {$meal->name} — {$qty} dona\n";
-                        }
+                        $meal = Meal::find($mealId);
+                        $mealListText .= "🍽 {$meal->name} — {$qty} dona\n";
                     }
                 }
-                if ($colaQty > 0) {
-                    $mealListText .= "🥤 Cola — {$colaQty} dona\n";
-                }
+                if ($colaQty > 0) $mealListText .= "🥤 Cola — {$colaQty} dona\n";
 
-                $locationLink = '';
-                if (!empty($customer->location_coordinates)) {
-                    $url = "https://www.google.com/maps/search/?api=1&query=" . urlencode($customer->location_coordinates);
-                    $locationLink = "📍 Location: [Map link]($url)";
-                }
-
-                $driverName = '';
-                if (!empty($orderData['driver_id'])) {
-                    $driver = \App\Models\Driver::find($orderData['driver_id']);
-                    $driverName = $driver ? $driver->name : '';
-                }
-
-                $telegramText = "📦 Buyurtma  Telegram botdan #{$order->daily_order_number}\n" .
-                    "👤 Mijoz: {$customer->name}\n" .
-                    "📞 Tel: {$customer->phone}\n" .
-                    ($driverName ? "🚚 Haydovchi: {$driverName}\n" : '') .
-                    "📅 Sana: {$orderDate}\n\n" .
-                    $mealListText .
-                    "📦 Yetkazib berish: " . number_format($deliveryFee, 0, '.', ' ') . " so‘m\n" .
-                    "💰 Umumiy: " . number_format($total, 0, '.', ' ') . " so‘m\n" .
-                    ($locationLink ? "\n{$locationLink}" : '');
+                $telegramText = "📦 Buyurtma #{$order->daily_order_number}\n"
+                    . "👤 {$customer->name}\n"
+                    . "📞 {$customer->phone}\n"
+                    . "💰 Umumiy: " . number_format($total, 0, '.', ' ') . " so‘m\n\n"
+                    . $mealListText;
 
                 $this->sendTelegramMessage($telegramText);
             }
 
             if (!empty($errors)) {
                 DB::rollBack();
-                return response()->json([
-                    'status' => 'error',
-                    'errors' => $errors
-                ], 422);
+                return response()->json(['status' => 'error', 'errors' => $errors], 422);
             }
 
             DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Buyurtmalar muvaffaqiyatli saqlandi!'
-            ], 201);
+            return response()->json(['status' => 'success', 'message' => 'Buyurtmalar saqlandi!'], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            logger()->error('Order save error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all(),
-            ]);
-
             return response()->json([
                 'status' => 'error',
                 'message' => 'Xatolik: ' . $e->getMessage()
@@ -247,6 +213,21 @@ class DailyMealController extends Controller
         }
     }
 
+    // Telegramga xabar yuborish
+    private function sendTelegramMessage($text)
+    {
+        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('TELEGRAM_CHAT_ID'); // admin kanal yoki guruh id
+        $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
 
-
+        try {
+            \Http::post($url, [
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+            ]);
+        } catch (\Exception $e) {
+            logger()->error("Telegramga xabar yuborilmadi: " . $e->getMessage());
+        }
+    }
 }
