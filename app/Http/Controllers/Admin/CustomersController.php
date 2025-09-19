@@ -587,7 +587,7 @@ class CustomersController extends Controller
                     'customer_id' => $customer->id,
                     'amount' => $additionalBalance,
                     'type' => 'payment',
-                    'description' => 'Admin tomonidan balans to‘ldirildi',
+                    'description' => auth()->user()->name . ' tomonidan balans to‘ldirildi',
                 ]);
             }
 

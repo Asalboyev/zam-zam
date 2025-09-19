@@ -27,7 +27,7 @@
           </li>
 
           <li class="dropdown ">
-              <a href="{{ route('admin.daily_meal.index') }}" class="nav-link"><i data-feather="arrow-up-circle"></i><span>Kunlik maxsulot</span></a>
+              <a href="{{ route('admin.daily_meal.index') }}" class="nav-link"><i data-feather="arrow-up-circle"></i><span>Bugungi menyu</span></a>
           </li>
           <li class="dropdown ">
               <a href="{{ route('admin.products.index') }}" class="nav-link"><i data-feather="database"></i><span>Malumotlar</span></a>

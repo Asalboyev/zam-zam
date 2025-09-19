@@ -13,28 +13,6 @@ class DailyMealController extends Controller
 {
 
 
-//    public function index(Request $request)
-//    {
-//        $date = $request->input('date');
-//
-//        if ($date) {
-//            $dailyMeals = DailyMeal::with('items')->whereDate('date', $date)->get();
-//        } else {
-//            $today = Carbon::today()->toDateString();
-//            $dailyMeals = DailyMeal::with('items')->whereDate('date', $today)->get();
-//
-//            if ($dailyMeals->isEmpty()) {
-//                $yesterday = Carbon::yesterday()->toDateString();
-//                $dailyMeals = DailyMeal::with('items')->whereDate('date', $yesterday)->get();
-//                $date = $yesterday;
-//            } else {
-//                $date = $today;
-//            }
-//        }
-//
-//        return view('admin.daily_meal.index', compact('dailyMeals', 'date'));
-//    }
-
     public function index(Request $request)
     {
         $date = $request->input('date', Carbon::today()->format('Y-m-d'));
@@ -44,14 +22,38 @@ class DailyMealController extends Controller
 
         $dailyMeals = DailyMeal::whereBetween('date', [$startOfWeek, $endOfWeek])
             ->with('items')
-            ->orderBy('date', 'asc') // ✅ DESC emas ASC qilib qo‘yamiz
+            ->orderBy('date', 'asc')
             ->get()
             ->groupBy(function ($meal) {
                 return Carbon::parse($meal->date)->format('Y-m-d');
             });
 
+        // 🔥 Bugungi kunni doim tepaga chiqarish
+        $dailyMeals = $dailyMeals->sortBy(function ($meals, $day) {
+            return Carbon::parse($day)->isToday() ? 0 : Carbon::parse($day)->timestamp;
+        });
+
         return view('admin.daily_meal.index', compact('dailyMeals', 'date'));
     }
+
+
+//    public function index(Request $request)
+//    {
+//        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
+//
+//        $startOfWeek = Carbon::parse($date)->startOfWeek(Carbon::MONDAY);
+//        $endOfWeek = Carbon::parse($date)->endOfWeek(Carbon::SATURDAY);
+//
+//        $dailyMeals = DailyMeal::whereBetween('date', [$startOfWeek, $endOfWeek])
+//            ->with('items')
+//            ->orderBy('date', 'asc') // ✅ DESC emas ASC qilib qo‘yamiz
+//            ->get()
+//            ->groupBy(function ($meal) {
+//                return Carbon::parse($meal->date)->format('Y-m-d');
+//            });
+//
+//        return view('admin.daily_meal.index', compact('dailyMeals', 'date'));
+//    }
 
 
 
@@ -120,14 +122,25 @@ class DailyMealController extends Controller
 //            ]);
 
 
+//        DB::table('daily_meal_items')
+//            ->where('id', $id)
+//            ->update([
+//                'meal_id' => $request->meal_id,
+//                'count' => DB::raw('count + ' . (int) $request->count),
+//                'remaining_count' => DB::raw('remaining_count + ' . (int) $request->count),
+//                'updated_at' => now(),
+//            ]);
         DB::table('daily_meal_items')
             ->where('id', $id)
             ->update([
                 'meal_id' => $request->meal_id,
-                'count' => DB::raw('count + ' . (int) $request->count),
-                'remaining_count' => DB::raw('remaining_count + ' . (int) $request->count),
+//                'sell' => $request->sell,
+                'count' => (int) $request->count,
+                'remaining_count' => (int) $request->remaining_count,
                 'updated_at' => now(),
             ]);
+
+
 
         return redirect()->route('admin.daily_meal.index')->with('success', 'Ovqat muvaffaqiyatli yangilandi.');
     }

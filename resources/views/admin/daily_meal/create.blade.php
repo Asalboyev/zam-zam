@@ -45,18 +45,56 @@
                         </select>
                     </div>
 
+                    @php
+                        // $meal bo'lmasa null bo'ladi, shuning uchun xato bo'lmaydi
+                        $countVal = old('count', isset($item) ? $item->count : '');
+                        $remainingVal = old('remaining_count', isset($item) ? $item->remaining_count : '');
+                        $sellVal = old('sell', isset($item) ? $item->sell : '');
+                    @endphp
+
+
+
                     <div class="form-group">
-                        <label>Soni</label>
+                        <label>Umumiy soni (count) </label>
                         <input type="number"
-                               name="count"
+                               name="remaining_count"
                                class="form-control"
-                               min="1"
+                               min="0"
                                step="1"
-                               required
-                               pattern="[1-9][0-9]*"
-                               oninput="validity.valid||(value='');"
-                               >
+
+                               value="{{ $remainingVal }}"
+                               pattern="[0-9]*"
+                               oninput="validity.valid||(value='{{ $remainingVal }}');">
                     </div>
+
+                    @auth
+                        @if(auth()->user()->role === 'admin')
+                            <div class="form-group">
+                                <label>Qolgan soni (remaining_count)</label>
+                                <input type="number"
+                                       name="count"
+                                       class="form-control"
+                                       min="1"
+                                       step="1"
+
+                                       value="{{ $countVal }}"
+                                       pattern="[1-9][0-9]*"
+                                       oninput="validity.valid||(value='{{ $countVal }}');">
+                            </div>
+                            <div class="form-group">
+                                <label>Sell</label>
+                                <input type="number"
+                                       name="sell"
+                                       class="form-control"
+                                       min="1"
+                                       step="1"
+
+                                       value="{{ $countVal }}"
+                                       pattern="[1-9][0-9]*"
+                                       oninput="validity.valid||(value='{{ $sellVal }}');">
+                            </div>
+                        @endif
+                    @endauth
 
                 </div>
 

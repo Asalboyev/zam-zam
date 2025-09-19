@@ -77,9 +77,9 @@
                             <li class="nav-item">
                                 <a class="nav-link active" href="{{ route('admin.products.index') }}">Ovqatlar <span class="badge badge-white"></span></a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link  " href="{{route('admin.customers.index')}}">Mijoz <span class="badge badge-primary"></span></a>
-                            </li>
+{{--                            <li class="nav-item">--}}
+{{--                                <a class="nav-link  " href="{{route('admin.customers.index')}}">Mijoz <span class="badge badge-primary"></span></a>--}}
+{{--                            </li>--}}
                             <li class="nav-item">
                                 <a class="nav-link " href="{{ route('admin.regions.index') }}">Tuman <span class="badge badge-primary"></span></a>
                             </li>

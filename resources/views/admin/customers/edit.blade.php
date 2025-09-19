@@ -159,25 +159,25 @@
         <form>
             @endsection
             @section('js')
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const select = document.getElementById('type-select');
-                        const statusGroup = document.querySelector('.status-group');
-                        const balanceTotalGroup = document.querySelector('.balance-total-group');
-                        const balanceGroup = document.querySelector('.balance-group');
+{{--                <script>--}}
+{{--                    document.addEventListener('DOMContentLoaded', function () {--}}
+{{--                        const select = document.getElementById('type-select');--}}
+{{--                        const statusGroup = document.querySelector('.status-group');--}}
+{{--                        const balanceTotalGroup = document.querySelector('.balance-total-group');--}}
+{{--                        const balanceGroup = document.querySelector('.balance-group');--}}
 
-                        function toggleFields() {
-                            const isOylik = select.value === 'oylik';
+{{--                        function toggleFields() {--}}
+{{--                            const isOylik = select.value === 'oylik';--}}
 
-                            statusGroup.style.display = isOylik ? 'block' : 'none';
-                            balanceTotalGroup.style.display = isOylik ? 'block' : 'none';
-                            balanceGroup.style.display = isOylik ? 'block' : 'none';
-                        }
+{{--                            statusGroup.style.display = isOylik ? 'block' : 'none';--}}
+{{--                            balanceTotalGroup.style.display = isOylik ? 'block' : 'none';--}}
+{{--                            balanceGroup.style.display = isOylik ? 'block' : 'none';--}}
+{{--                        }--}}
 
-                        toggleFields(); // Boshlanishida ishlaydi
-                        select.addEventListener('change', toggleFields); // Har safar tanlanganda ishlaydi
-                    });
-                </script>
+{{--                        toggleFields(); // Boshlanishida ishlaydi--}}
+{{--                        select.addEventListener('change', toggleFields); // Har safar tanlanganda ishlaydi--}}
+{{--                    });--}}
+{{--                </script>--}}
 
 
                 <script src="/admin/assets/js/app.min.js"></script>
