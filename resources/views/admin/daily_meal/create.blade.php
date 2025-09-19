@@ -89,7 +89,7 @@
                                        min="1"
                                        step="1"
 
-                                       value="{{ $countVal }}"
+                                       value="{{ $sellVal }}"
                                        pattern="[1-9][0-9]*"
                                        oninput="validity.valid||(value='{{ $sellVal }}');">
                             </div>
