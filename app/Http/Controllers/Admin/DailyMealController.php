@@ -73,8 +73,8 @@ class DailyMealController extends Controller
         DB::table('daily_meal_items')->insert([
             'daily_meal_id' => $dailyMeal->id,
             'meal_id' => $request->meal_id,
-            'count' => $request->count,
-            'remaining_count' => $request->count,
+            'count' => $request->remaining_count,
+            'remaining_count' => $request->remaining_count,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
