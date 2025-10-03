@@ -1211,6 +1211,7 @@ class OrdersController extends Controller
                 'payment_method' => $request->input('payment_method', $order->payment_method), // ✅ TO‘G‘RILANDI
                 'total_meals' => $totalMealsQty,
                 'total_amount' => $total,
+                'daily_order_number' => $order->daily_order_number, 
                 'user_id' => auth()->id(),
             ]);
 
