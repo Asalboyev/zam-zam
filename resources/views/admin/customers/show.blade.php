@@ -128,6 +128,8 @@
                         </tbody>
                     </table>
                 </div>
+                {{ $latestOrders->links() }}
+
             </div>
         @endif
     </div>

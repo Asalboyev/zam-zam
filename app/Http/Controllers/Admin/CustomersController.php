@@ -608,11 +608,11 @@ class CustomersController extends Controller
 
         $meals = Meal::all();
 
+        // Pagination bilan yozilgan variant
         $latestOrders = Order::where('customer_id', $customer->id)
-            ->with(['customer', 'driver']) // eager load qilish tavsiya etiladi
+            ->with(['customer', 'driver']) // Eager loading
             ->latest()
-            ->take(10)
-            ->get();
+            ->paginate(10); // Har sahifada 10 ta buyurtma
 
         return view('admin.customers.show', compact('customer', 'latestOrders', 'meals'));
     }
