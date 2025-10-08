@@ -74,11 +74,11 @@
                                 <input type="number"
                                        name="count"
                                        class="form-control"
-                                       min="1"
-                                       step="1"
+{{--                                       min="1"--}}
+{{--                                       step="1"--}}
 
                                        value="{{ $countVal }}"
-                                       pattern="[1-9][0-9]*"
+{{--                                       pattern="[1-9][0-9]*"--}}
                                        oninput="validity.valid||(value='{{ $countVal }}');">
                             </div>
                             <div class="form-group">

@@ -111,8 +111,7 @@
                                         -
                                     @endif
                                 </td>
-
-                                <td><strong>{{ $totalMeals }}</strong></td>
+                                <td><strong>{{ $order->total_meals }}</strong></td>
                                 <td>{{ $order->cola_quantity }}</td>
                                 <td>{{ number_format($order->delivery_fee, 0, ',', ' ') }} so‘m</td>
                                 <td>{{ $order->driver->name ?? '-' }}</td>
