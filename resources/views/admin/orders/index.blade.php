@@ -367,10 +367,7 @@
                                     -
                                 @endif
                             </td>
-                            <!-- <td style="background: #F5F5F7 !important;"
-                                class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
-                                {{ number_format($order->customer->balance, 0, '.', ' ') }}
-                            </td> -->
+                         
 
                               <td style="background: #F5F5F7 !important;"
                             class="{{ optional($order->customer)->balance < 0 ? 'text-danger' : '' }}">
