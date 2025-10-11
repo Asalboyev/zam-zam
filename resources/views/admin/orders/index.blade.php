@@ -367,10 +367,16 @@
                                     -
                                 @endif
                             </td>
-                            <td style="background: #F5F5F7 !important;"
+                            <!-- <td style="background: #F5F5F7 !important;"
                                 class="{{ $order->customer->balance < 0 ? 'text-danger' : '' }}">
                                 {{ number_format($order->customer->balance, 0, '.', ' ') }}
-                            </td>
+                            </td> -->
+
+                              <td style="background: #F5F5F7 !important;"
+                            class="{{ optional($order->customer)->balance < 0 ? 'text-danger' : '' }}">
+                            {{ number_format(optional($order->customer)->balance ?? 0, 0, '.', ' ') }}
+                        </td>
+
 
                             @php $totalMeals = 0; @endphp
                             @foreach($meals as $meal)
